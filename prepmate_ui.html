@@ -1,0 +1,762 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); }
+
+  .pm-shell {
+    display: flex;
+    min-height: 700px;
+    background: var(--color-background-tertiary);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    border: 0.5px solid var(--color-border-tertiary);
+  }
+
+  .pm-sidebar {
+    width: 200px;
+    flex-shrink: 0;
+    background: var(--color-background-primary);
+    border-right: 0.5px solid var(--color-border-tertiary);
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0;
+  }
+
+  .pm-logo {
+    padding: 0 16px 20px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    margin-bottom: 12px;
+  }
+  .pm-logo-dot {
+    width: 24px; height: 24px; border-radius: 6px;
+    background: #185FA5;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .pm-logo-dot i { color: #fff; font-size: 13px; }
+
+  .pm-nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 16px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    border-radius: 0;
+    transition: background 0.12s;
+    border: none; background: none; width: 100%; text-align: left;
+  }
+  .pm-nav-item:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+  .pm-nav-item.active {
+    background: #E6F1FB;
+    color: #185FA5;
+    font-weight: 500;
+  }
+  .pm-nav-item.active i { color: #185FA5; }
+  .pm-nav-item i { font-size: 16px; }
+
+  .pm-nav-section {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-tertiary);
+    padding: 12px 16px 4px;
+  }
+
+  .pm-sidebar-footer {
+    margin-top: auto;
+    border-top: 0.5px solid var(--color-border-tertiary);
+    padding: 12px 16px 0;
+  }
+  .pm-avatar-row {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .pm-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #E6F1FB;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 500; color: #185FA5; flex-shrink: 0;
+  }
+  .pm-avatar-name { font-size: 12px; color: var(--color-text-primary); font-weight: 500; }
+  .pm-avatar-role { font-size: 11px; color: var(--color-text-secondary); }
+
+  .pm-main {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pm-topbar {
+    background: var(--color-background-primary);
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .pm-topbar-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
+  .pm-topbar-sub { font-size: 12px; color: var(--color-text-secondary); margin-top: 1px; }
+  .pm-btn-primary {
+    background: #185FA5; color: #fff;
+    border: none; border-radius: var(--border-radius-md);
+    padding: 7px 14px; font-size: 13px; cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--font-sans);
+  }
+  .pm-btn-primary i { font-size: 15px; }
+
+  .pm-content {
+    padding: 20px 24px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .pm-screen { display: none; }
+  .pm-screen.visible { display: block; }
+
+  .pm-stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .pm-stat-card {
+    background: var(--color-background-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 12px 14px;
+  }
+  .pm-stat-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; }
+  .pm-stat-value { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+  .pm-stat-delta { font-size: 11px; color: #0F6E56; margin-top: 2px; }
+  .pm-stat-delta.down { color: #993C1D; }
+
+  .pm-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .pm-card {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    padding: 16px;
+  }
+  .pm-card-title {
+    font-size: 13px; font-weight: 500;
+    color: var(--color-text-primary);
+    margin-bottom: 14px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .pm-card-title span { font-size: 11px; color: var(--color-text-secondary); font-weight: 400; }
+
+  .pm-chart-bars {
+    display: flex; align-items: flex-end; gap: 6px;
+    height: 80px;
+  }
+  .pm-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .pm-bar {
+    width: 100%; border-radius: 3px 3px 0 0;
+    background: #B5D4F4;
+    transition: background 0.2s;
+    cursor: pointer;
+  }
+  .pm-bar.highlight { background: #185FA5; }
+  .pm-bar-label { font-size: 9px; color: var(--color-text-tertiary); }
+
+  .pm-dim-list { display: flex; flex-direction: column; gap: 10px; }
+  .pm-dim-row { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+  .pm-dim-name { width: 72px; color: var(--color-text-secondary); flex-shrink: 0; }
+  .pm-dim-track { flex: 1; height: 6px; background: var(--color-background-secondary); border-radius: 99px; overflow: hidden; }
+  .pm-dim-fill { height: 100%; border-radius: 99px; }
+  .pm-dim-score { width: 28px; text-align: right; font-weight: 500; color: var(--color-text-primary); }
+
+  .pm-sessions-list { display: flex; flex-direction: column; gap: 8px; }
+  .pm-session-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px;
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-md);
+    background: var(--color-background-primary);
+    cursor: pointer;
+  }
+  .pm-session-row:hover { background: var(--color-background-secondary); }
+  .pm-session-icon {
+    width: 32px; height: 32px; border-radius: var(--border-radius-md);
+    background: #E6F1FB; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .pm-session-icon i { font-size: 16px; color: #185FA5; }
+  .pm-session-info { flex: 1; }
+  .pm-session-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+  .pm-session-meta { font-size: 11px; color: var(--color-text-secondary); margin-top: 1px; }
+  .pm-score-badge {
+    padding: 3px 8px;
+    border-radius: 99px;
+    font-size: 12px; font-weight: 500;
+  }
+  .pm-score-high { background: #EAF3DE; color: #3B6D11; }
+  .pm-score-mid { background: #FAEEDA; color: #854F0B; }
+  .pm-score-low { background: #FCEBEB; color: #A32D2D; }
+
+  .pm-weak-box {
+    background: #FAEEDA;
+    border: 0.5px solid #FAC775;
+    border-radius: var(--border-radius-md);
+    padding: 12px 14px;
+    display: flex; align-items: flex-start; gap: 10px;
+    margin-bottom: 16px;
+  }
+  .pm-weak-box i { color: #BA7517; font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .pm-weak-text { font-size: 12px; color: #633806; line-height: 1.5; }
+  .pm-weak-text strong { font-weight: 500; }
+
+  .pm-interview-wrap {
+    max-width: 560px;
+  }
+  .pm-progress-bar-wrap {
+    background: var(--color-background-secondary);
+    border-radius: 99px; height: 4px; margin-bottom: 24px; overflow: hidden;
+  }
+  .pm-progress-fill {
+    height: 100%; border-radius: 99px; background: #185FA5; width: 30%;
+  }
+  .pm-q-number { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 6px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .pm-question-card {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-left: 3px solid #185FA5;
+    border-radius: var(--border-radius-md);
+    padding: 16px 18px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: var(--color-text-primary);
+    line-height: 1.6;
+  }
+  .pm-answer-area {
+    width: 100%;
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    resize: none;
+    min-height: 120px;
+    line-height: 1.6;
+    outline: none;
+    margin-bottom: 6px;
+  }
+  .pm-answer-area:focus { border-color: #185FA5; }
+  .pm-wc { font-size: 11px; color: var(--color-text-tertiary); text-align: right; margin-bottom: 14px; }
+  .pm-submit-btn {
+    background: #185FA5; color: #fff;
+    border: none; border-radius: var(--border-radius-md);
+    padding: 9px 20px; font-size: 13px; cursor: pointer;
+    font-family: var(--font-sans); width: 100%;
+  }
+
+  .pm-feedback-card {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    padding: 16px;
+    margin-top: 20px;
+  }
+  .pm-feedback-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 14px; }
+  .pm-score-overall {
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    margin-bottom: 16px;
+  }
+  .pm-score-big { font-size: 42px; font-weight: 500; color: #185FA5; line-height: 1; }
+  .pm-score-big-label { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+
+  .pm-scores-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; margin-bottom: 14px;
+  }
+  .pm-score-item {
+    background: var(--color-background-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 10px 12px;
+  }
+  .pm-score-item-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 6px; }
+  .pm-score-item-bar { height: 5px; background: var(--color-background-primary); border-radius: 99px; overflow: hidden; margin-bottom: 4px; }
+  .pm-score-item-fill { height: 100%; border-radius: 99px; background: #378ADD; }
+  .pm-score-item-val { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+
+  .pm-feedback-text {
+    font-size: 12px; color: var(--color-text-secondary); line-height: 1.65;
+    border-top: 0.5px solid var(--color-border-tertiary);
+    padding-top: 12px; margin-bottom: 10px;
+  }
+  .pm-tip-box {
+    background: #E1F5EE;
+    border: 0.5px solid #9FE1CB;
+    border-radius: var(--border-radius-md);
+    padding: 10px 12px;
+    font-size: 12px; color: #085041; line-height: 1.5;
+  }
+  .pm-tip-box strong { font-weight: 500; }
+
+  .pm-setup-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+  .pm-type-card {
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-md);
+    padding: 14px 12px;
+    background: var(--color-background-primary);
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .pm-type-card:hover { border-color: #185FA5; background: #E6F1FB; }
+  .pm-type-card.selected { border-color: #185FA5; border-width: 2px; background: #E6F1FB; }
+  .pm-type-card i { font-size: 22px; color: #185FA5; margin-bottom: 8px; }
+  .pm-type-card-name { font-size: 12px; font-weight: 500; color: var(--color-text-primary); }
+  .pm-type-card-desc { font-size: 11px; color: var(--color-text-secondary); margin-top: 3px; line-height: 1.4; }
+  .pm-form-label { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 6px; }
+  .pm-form-row { margin-bottom: 16px; }
+  select.pm-select {
+    width: 100%; padding: 8px 10px; font-size: 13px;
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    background: var(--color-background-primary);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    outline: none;
+    cursor: pointer;
+  }
+  .pm-q-count-row { display: flex; gap: 8px; }
+  .pm-q-count-btn {
+    flex: 1; padding: 7px; font-size: 13px;
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    background: var(--color-background-primary);
+    color: var(--color-text-primary);
+    cursor: pointer; font-family: var(--font-sans);
+  }
+  .pm-q-count-btn.selected { border-color: #185FA5; border-width: 2px; color: #185FA5; font-weight: 500; background: #E6F1FB; }
+  .pm-start-btn {
+    width: 100%; background: #185FA5; color: #fff;
+    border: none; border-radius: var(--border-radius-md);
+    padding: 11px; font-size: 14px; font-weight: 500;
+    cursor: pointer; font-family: var(--font-sans); margin-top: 4px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .pm-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 99px;
+    font-size: 11px; font-weight: 500;
+  }
+  .pm-tag-behavioral { background: #E6F1FB; color: #185FA5; }
+  .pm-tag-technical { background: #EAF3DE; color: #3B6D11; }
+  .pm-tag-hr { background: #FBEAF0; color: #993556; }
+</style>
+
+<h2 class="sr-only">PrepMate — AI Interview Coach interface mockup with sidebar navigation, dashboard, interview session, and setup screens</h2>
+
+<div class="pm-shell">
+  <div class="pm-sidebar">
+    <div class="pm-logo">
+      <div class="pm-logo-dot"><i class="ti ti-microphone" aria-hidden="true"></i></div>
+      PrepMate
+    </div>
+
+    <div class="pm-nav-section">Menu</div>
+    <button class="pm-nav-item active" onclick="showScreen('dashboard')">
+      <i class="ti ti-layout-dashboard" aria-hidden="true"></i> Dashboard
+    </button>
+    <button class="pm-nav-item" onclick="showScreen('setup')">
+      <i class="ti ti-player-play" aria-hidden="true"></i> Practice
+    </button>
+    <button class="pm-nav-item" onclick="showScreen('interview')">
+      <i class="ti ti-message-dots" aria-hidden="true"></i> Interview
+    </button>
+    <button class="pm-nav-item" onclick="showScreen('history')">
+      <i class="ti ti-clock" aria-hidden="true"></i> History
+    </button>
+
+    <div class="pm-nav-section" style="margin-top:8px;">Account</div>
+    <button class="pm-nav-item">
+      <i class="ti ti-settings" aria-hidden="true"></i> Settings
+    </button>
+
+    <div class="pm-sidebar-footer">
+      <div class="pm-avatar-row">
+        <div class="pm-avatar">AO</div>
+        <div>
+          <div class="pm-avatar-name">Alex Obi</div>
+          <div class="pm-avatar-role">SWE · Entry level</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pm-main">
+    <div class="pm-topbar" id="topbar">
+      <div>
+        <div class="pm-topbar-title" id="topbar-title">Dashboard</div>
+        <div class="pm-topbar-sub" id="topbar-sub">Welcome back, Alex. Keep your streak going.</div>
+      </div>
+      <button class="pm-btn-primary" onclick="showScreen('setup')">
+        <i class="ti ti-plus" aria-hidden="true"></i> New interview
+      </button>
+    </div>
+
+    <div class="pm-content">
+
+      <!-- DASHBOARD -->
+      <div class="pm-screen visible" id="screen-dashboard">
+        <div class="pm-stats-row">
+          <div class="pm-stat-card">
+            <div class="pm-stat-label">Sessions done</div>
+            <div class="pm-stat-value">24</div>
+            <div class="pm-stat-delta">↑ 3 this week</div>
+          </div>
+          <div class="pm-stat-card">
+            <div class="pm-stat-label">Avg. score</div>
+            <div class="pm-stat-value">74</div>
+            <div class="pm-stat-delta">↑ 6 pts vs last week</div>
+          </div>
+          <div class="pm-stat-card">
+            <div class="pm-stat-label">Best score</div>
+            <div class="pm-stat-value">91</div>
+            <div class="pm-stat-delta">Behavioral · May 9</div>
+          </div>
+          <div class="pm-stat-card">
+            <div class="pm-stat-label">Streak</div>
+            <div class="pm-stat-value">🔥 7</div>
+            <div class="pm-stat-delta">days in a row</div>
+          </div>
+        </div>
+
+        <div class="pm-weak-box">
+          <i class="ti ti-bulb" aria-hidden="true"></i>
+          <div class="pm-weak-text"><strong>Weakest area: Confidence.</strong> Your scores trend low on assertive language. A focused HR session today will help — your answers are strong, your framing isn't.</div>
+        </div>
+
+        <div class="pm-grid-2">
+          <div class="pm-card">
+            <div class="pm-card-title">Score trend <span>last 8 sessions</span></div>
+            <div class="pm-chart-bars" id="trend-bars"></div>
+            <div style="display:flex;justify-content:space-between;margin-top:6px;">
+              <span style="font-size:10px;color:var(--color-text-tertiary)">Apr 28</span>
+              <span style="font-size:10px;color:var(--color-text-tertiary)">May 11</span>
+            </div>
+          </div>
+          <div class="pm-card">
+            <div class="pm-card-title">Dimension breakdown <span>all time avg</span></div>
+            <div class="pm-dim-list">
+              <div class="pm-dim-row">
+                <span class="pm-dim-name">Clarity</span>
+                <div class="pm-dim-track"><div class="pm-dim-fill" style="width:82%;background:#378ADD;"></div></div>
+                <span class="pm-dim-score">82</span>
+              </div>
+              <div class="pm-dim-row">
+                <span class="pm-dim-name">Confidence</span>
+                <div class="pm-dim-track"><div class="pm-dim-fill" style="width:61%;background:#E24B4A;"></div></div>
+                <span class="pm-dim-score">61</span>
+              </div>
+              <div class="pm-dim-row">
+                <span class="pm-dim-name">Structure</span>
+                <div class="pm-dim-track"><div class="pm-dim-fill" style="width:77%;background:#378ADD;"></div></div>
+                <span class="pm-dim-score">77</span>
+              </div>
+              <div class="pm-dim-row">
+                <span class="pm-dim-name">Relevance</span>
+                <div class="pm-dim-track"><div class="pm-dim-fill" style="width:88%;background:#1D9E75;"></div></div>
+                <span class="pm-dim-score">88</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pm-card">
+          <div class="pm-card-title">Recent sessions <span>tap to review</span></div>
+          <div class="pm-sessions-list">
+            <div class="pm-session-row">
+              <div class="pm-session-icon"><i class="ti ti-brain" aria-hidden="true"></i></div>
+              <div class="pm-session-info">
+                <div class="pm-session-name">Software Engineer · Behavioral</div>
+                <div class="pm-session-meta">May 11, 2026 &nbsp;·&nbsp; 10 questions</div>
+              </div>
+              <span class="pm-score-badge pm-score-high">91</span>
+            </div>
+            <div class="pm-session-row">
+              <div class="pm-session-icon"><i class="ti ti-code" aria-hidden="true"></i></div>
+              <div class="pm-session-info">
+                <div class="pm-session-name">Software Engineer · Technical</div>
+                <div class="pm-session-meta">May 10, 2026 &nbsp;·&nbsp; 10 questions</div>
+              </div>
+              <span class="pm-score-badge pm-score-mid">68</span>
+            </div>
+            <div class="pm-session-row">
+              <div class="pm-session-icon"><i class="ti ti-users" aria-hidden="true"></i></div>
+              <div class="pm-session-info">
+                <div class="pm-session-name">Software Engineer · HR</div>
+                <div class="pm-session-meta">May 9, 2026 &nbsp;·&nbsp; 5 questions</div>
+              </div>
+              <span class="pm-score-badge pm-score-mid">74</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETUP -->
+      <div class="pm-screen" id="screen-setup">
+        <div style="max-width:520px;">
+          <p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:18px;">Configure your session and start practicing. Each session is saved and tracked.</p>
+
+          <div class="pm-form-row">
+            <div class="pm-form-label">Interview type</div>
+            <div class="pm-setup-grid">
+              <div class="pm-type-card selected" onclick="selectType(this)">
+                <i class="ti ti-star" aria-hidden="true"></i>
+                <div class="pm-type-card-name">Behavioral</div>
+                <div class="pm-type-card-desc">STAR method, past experience</div>
+              </div>
+              <div class="pm-type-card" onclick="selectType(this)">
+                <i class="ti ti-terminal-2" aria-hidden="true"></i>
+                <div class="pm-type-card-name">Technical</div>
+                <div class="pm-type-card-desc">Concepts, problem-solving</div>
+              </div>
+              <div class="pm-type-card" onclick="selectType(this)">
+                <i class="ti ti-heart-handshake" aria-hidden="true"></i>
+                <div class="pm-type-card-name">HR</div>
+                <div class="pm-type-card-desc">Culture fit, motivation</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pm-form-row">
+            <div class="pm-form-label">Target role</div>
+            <select class="pm-select">
+              <option selected>Software Engineer</option>
+              <option>Product Manager</option>
+              <option>Data Analyst</option>
+              <option>UX Designer</option>
+              <option>Marketing</option>
+              <option>Finance</option>
+            </select>
+          </div>
+
+          <div class="pm-form-row">
+            <div class="pm-form-label">Experience level</div>
+            <select class="pm-select">
+              <option selected>Entry level</option>
+              <option>Mid level</option>
+              <option>Senior level</option>
+            </select>
+          </div>
+
+          <div class="pm-form-row">
+            <div class="pm-form-label">Number of questions</div>
+            <div class="pm-q-count-row">
+              <button class="pm-q-count-btn" onclick="selectQ(this)">5</button>
+              <button class="pm-q-count-btn selected" onclick="selectQ(this)">10</button>
+              <button class="pm-q-count-btn" onclick="selectQ(this)">15</button>
+            </div>
+          </div>
+
+          <button class="pm-start-btn" onclick="showScreen('interview')">
+            <i class="ti ti-player-play" aria-hidden="true"></i> Start interview
+          </button>
+        </div>
+      </div>
+
+      <!-- INTERVIEW -->
+      <div class="pm-screen" id="screen-interview">
+        <div class="pm-interview-wrap">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div class="pm-q-number">Question 3 of 10 &nbsp;·&nbsp; <span class="pm-tag pm-tag-behavioral">Behavioral</span></div>
+            <div style="font-size:11px;color:var(--color-text-tertiary);">SWE · Entry</div>
+          </div>
+          <div class="pm-progress-bar-wrap"><div class="pm-progress-fill"></div></div>
+
+          <div class="pm-question-card">
+            Describe a time when you had to learn a new technology quickly under a deadline. What was your approach, and what was the outcome?
+          </div>
+
+          <textarea class="pm-answer-area" id="answer-input" placeholder="Write your answer here. Aim for 150–300 words. Use the STAR method: Situation, Task, Action, Result." oninput="updateWC(this)"></textarea>
+          <div class="pm-wc" id="wc-display">0 words</div>
+
+          <button class="pm-submit-btn" onclick="showFeedback()">Evaluate answer</button>
+
+          <div class="pm-feedback-card" id="feedback-section" style="display:none;">
+            <div class="pm-feedback-title">AI feedback</div>
+            <div class="pm-score-overall">
+              <div class="pm-score-big">79</div>
+              <div class="pm-score-big-label">overall score</div>
+            </div>
+            <div class="pm-scores-grid">
+              <div class="pm-score-item">
+                <div class="pm-score-item-label">Clarity</div>
+                <div class="pm-score-item-bar"><div class="pm-score-item-fill" style="width:78%;"></div></div>
+                <div class="pm-score-item-val">78</div>
+              </div>
+              <div class="pm-score-item">
+                <div class="pm-score-item-label">Confidence</div>
+                <div class="pm-score-item-bar"><div class="pm-score-item-fill" style="width:65%;background:#E24B4A;"></div></div>
+                <div class="pm-score-item-val">65</div>
+              </div>
+              <div class="pm-score-item">
+                <div class="pm-score-item-label">Structure</div>
+                <div class="pm-score-item-bar"><div class="pm-score-item-fill" style="width:82%;"></div></div>
+                <div class="pm-score-item-val">82</div>
+              </div>
+              <div class="pm-score-item">
+                <div class="pm-score-item-label">Relevance</div>
+                <div class="pm-score-item-bar"><div class="pm-score-item-fill" style="width:90%;background:#1D9E75;"></div></div>
+                <div class="pm-score-item-val">90</div>
+              </div>
+            </div>
+            <div class="pm-feedback-text">
+              Strong relevance and good use of STAR. Your situation and task were clearly defined. The action section needs more specificity — instead of "I learned React", walk through the exact steps you took. Your result was concrete, which is great.
+            </div>
+            <div class="pm-tip-box">
+              <strong>Tip:</strong> Add one measurable outcome to your result — e.g. "shipped 3 days early" or "reduced load time by 30%" — to make the impact undeniable.
+            </div>
+            <button class="pm-submit-btn" style="margin-top:14px;background:#0F6E56;" onclick="showScreen('interview')">
+              Next question →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORY -->
+      <div class="pm-screen" id="screen-history">
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+          <button class="pm-q-count-btn selected" style="flex:none;padding:5px 12px;">All</button>
+          <button class="pm-q-count-btn" style="flex:none;padding:5px 12px;">Behavioral</button>
+          <button class="pm-q-count-btn" style="flex:none;padding:5px 12px;">Technical</button>
+          <button class="pm-q-count-btn" style="flex:none;padding:5px 12px;">HR</button>
+        </div>
+        <div class="pm-sessions-list">
+          <div class="pm-session-row">
+            <div class="pm-session-icon"><i class="ti ti-brain" aria-hidden="true"></i></div>
+            <div class="pm-session-info">
+              <div class="pm-session-name">Software Engineer · Behavioral <span class="pm-tag pm-tag-behavioral" style="margin-left:6px;">Behavioral</span></div>
+              <div class="pm-session-meta">May 11, 2026 &nbsp;·&nbsp; 10 questions &nbsp;·&nbsp; 18 min</div>
+            </div>
+            <span class="pm-score-badge pm-score-high">91</span>
+          </div>
+          <div class="pm-session-row">
+            <div class="pm-session-icon"><i class="ti ti-code" aria-hidden="true"></i></div>
+            <div class="pm-session-info">
+              <div class="pm-session-name">Software Engineer · Technical <span class="pm-tag pm-tag-technical" style="margin-left:6px;">Technical</span></div>
+              <div class="pm-session-meta">May 10, 2026 &nbsp;·&nbsp; 10 questions &nbsp;·&nbsp; 24 min</div>
+            </div>
+            <span class="pm-score-badge pm-score-mid">68</span>
+          </div>
+          <div class="pm-session-row">
+            <div class="pm-session-icon"><i class="ti ti-users" aria-hidden="true"></i></div>
+            <div class="pm-session-info">
+              <div class="pm-session-name">Software Engineer · HR <span class="pm-tag pm-tag-hr" style="margin-left:6px;">HR</span></div>
+              <div class="pm-session-meta">May 9, 2026 &nbsp;·&nbsp; 5 questions &nbsp;·&nbsp; 9 min</div>
+            </div>
+            <span class="pm-score-badge pm-score-mid">74</span>
+          </div>
+          <div class="pm-session-row">
+            <div class="pm-session-icon"><i class="ti ti-brain" aria-hidden="true"></i></div>
+            <div class="pm-session-info">
+              <div class="pm-session-name">Product Manager · Behavioral <span class="pm-tag pm-tag-behavioral" style="margin-left:6px;">Behavioral</span></div>
+              <div class="pm-session-meta">May 8, 2026 &nbsp;·&nbsp; 10 questions &nbsp;·&nbsp; 21 min</div>
+            </div>
+            <span class="pm-score-badge pm-score-low">58</span>
+          </div>
+          <div class="pm-session-row">
+            <div class="pm-session-icon"><i class="ti ti-code" aria-hidden="true"></i></div>
+            <div class="pm-session-info">
+              <div class="pm-session-name">Software Engineer · Technical <span class="pm-tag pm-tag-technical" style="margin-left:6px;">Technical</span></div>
+              <div class="pm-session-meta">May 7, 2026 &nbsp;·&nbsp; 15 questions &nbsp;·&nbsp; 31 min</div>
+            </div>
+            <span class="pm-score-badge pm-score-mid">72</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  const screens = ['dashboard','setup','interview','history'];
+  const titles = {
+    dashboard: ['Dashboard', 'Welcome back, Alex. Keep your streak going.'],
+    setup: ['New interview', 'Configure your session below.'],
+    interview: ['Live session', 'Question 3 of 10 · Behavioral · SWE Entry'],
+    history: ['Session history', 'All your past interviews and scores.']
+  };
+
+  function showScreen(id) {
+    screens.forEach(s => {
+      document.getElementById('screen-' + s).classList.remove('visible');
+      document.querySelectorAll('.pm-nav-item').forEach((btn, i) => {
+        if(btn.getAttribute('onclick') && btn.getAttribute('onclick').includes("'" + s + "'")) {
+          btn.classList.remove('active');
+        }
+      });
+    });
+    document.getElementById('screen-' + id).classList.add('visible');
+    document.getElementById('topbar-title').textContent = titles[id][0];
+    document.getElementById('topbar-sub').textContent = titles[id][1];
+    document.querySelectorAll('.pm-nav-item').forEach(btn => {
+      if(btn.getAttribute('onclick') && btn.getAttribute('onclick').includes("'" + id + "'")) {
+        btn.classList.add('active');
+      }
+    });
+    if(id === 'interview') {
+      document.getElementById('feedback-section').style.display = 'none';
+      document.getElementById('answer-input').value = '';
+      document.getElementById('wc-display').textContent = '0 words';
+    }
+  }
+
+  function selectType(el) {
+    document.querySelectorAll('.pm-type-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+  function selectQ(el) {
+    document.querySelectorAll('.pm-q-count-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function updateWC(el) {
+    const words = el.value.trim() === '' ? 0 : el.value.trim().split(/\s+/).length;
+    const color = words < 80 ? 'var(--color-text-tertiary)' : words <= 300 ? '#0F6E56' : '#A32D2D';
+    document.getElementById('wc-display').textContent = words + ' words';
+    document.getElementById('wc-display').style.color = color;
+  }
+
+  function showFeedback() {
+    document.getElementById('feedback-section').style.display = 'block';
+    document.getElementById('feedback-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  const scores = [55, 61, 58, 67, 70, 72, 85, 91];
+  const barsEl = document.getElementById('trend-bars');
+  const maxS = Math.max(...scores);
+  scores.forEach((s, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'pm-bar-wrap';
+    const bar = document.createElement('div');
+    bar.className = 'pm-bar' + (i === scores.length - 1 ? ' highlight' : '');
+    bar.style.height = Math.round((s / maxS) * 72) + 'px';
+    bar.title = 'Score: ' + s;
+    const lbl = document.createElement('div');
+    lbl.className = 'pm-bar-label';
+    lbl.textContent = s;
+    wrap.appendChild(bar);
+    wrap.appendChild(lbl);
+    barsEl.appendChild(wrap);
+  });
+</script>
