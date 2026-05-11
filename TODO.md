@@ -11,7 +11,7 @@
 
 The foundation. Nothing else starts until this is done.
 
-- [ ] Create GitHub repository (`prepmate`)
+- [x] Create GitHub repository (`prepmate`)
 - [x] Initialize Next.js 14 project with TypeScript
   ```bash
   npx create-next-app@latest prepmate --typescript --tailwind --app
@@ -34,9 +34,9 @@ The foundation. Nothing else starts until this is done.
   - [x] `answers` table
   - [x] Enable Row Level Security on all tables
   - [x] Add RLS policies
-- [ ] Connect repo to Vercel — auto-deploy on push to `main`
-- [ ] Confirm live URL is working (even if just a placeholder page)
-- [ ] Set environment variables in Vercel dashboard
+- [x] Connect repo to Vercel — auto-deploy on push to `main`
+- [x] Confirm live URL is working (even if just a placeholder page)
+- [x] Set environment variables in Vercel dashboard
 
 **Phase 0 checkpoint: Live URL exists. Database tables exist. Keys are wired.**
 
@@ -46,22 +46,17 @@ The foundation. Nothing else starts until this is done.
 
 Users must be able to sign up and log in before anything else matters.
 
-- [ ] Create Supabase auth client utility (`lib/supabase.ts`)
-- [ ] Create Next.js middleware for session refresh (`middleware.ts`)
-- [ ] Build `/login` page
-  - [ ] Email + password form
-  - [ ] Error state handling (wrong password, user not found)
-  - [ ] Redirect to `/dashboard` on success
-- [ ] Build `/signup` page
-  - [ ] Email + password + confirm password form
-  - [ ] On success → redirect to `/onboarding`
-- [ ] Build `/onboarding` page
-  - [ ] "What role are you targeting?" dropdown (Software Engineer, Product Manager, Data Analyst, UX Designer, Marketing, Finance, Operations, Other)
-  - [ ] "What's your experience level?" selector (Entry / Mid / Senior)
-  - [ ] Submit creates `profiles` record in Supabase
-  - [ ] Redirect to `/dashboard`
-- [ ] Add logout functionality (button in nav)
-- [ ] Protect all `/dashboard`, `/interview`, `/history` routes — redirect to `/login` if not authenticated
+- [x] Create Supabase auth client utility (`lib/supabase.ts`)
+- [x] Create Next.js middleware for session refresh (`middleware.ts`)
+- [x] Build `/login` page (Integrated into Landing Page)
+- [x] Build `/signup` page (Integrated into Landing Page)
+- [x] Build `/onboarding` page
+  - [x] "What role are you targeting?" dropdown
+  - [x] "What's your experience level?" selector
+  - [x] Submit creates `profiles` record in Supabase
+  - [x] Redirect to `/dashboard`
+- [x] Add logout functionality (button in nav)
+- [x] Protect all `/dashboard`, `/interview`, `/history` routes — redirect to `/` if not authenticated
 
 **Phase 1 checkpoint: Can sign up, log in, complete onboarding, and log out.**
 
@@ -71,18 +66,18 @@ Users must be able to sign up and log in before anything else matters.
 
 The brain. Build and test this before touching the interview UI.
 
-- [ ] Create GROQ client utility (`lib/claude.ts`)
+- [ ] Create GROQ client utility (`lib/Agentic Ai.ts`)
 - [ ] Build `POST /api/generate-question` route
   - [ ] Accept `role`, `experience_level`, `interview_type`, `asked_questions[]`
-  - [ ] Construct Claude prompt (see DOCUMENTATION.md)
+  - [ ] Construct Agentic AI prompt (see DOCUMENTATION.md)
   - [ ] Return `{ question: string }`
-  - [ ] Handle Claude API errors gracefully (return 500 with message)
+  - [ ] Handle Agentic AI errors gracefully (return 500 with message)
 - [ ] Build `POST /api/evaluate-answer` route
   - [ ] Accept `question`, `answer`, `role`, `experience_level`, `interview_type`
-  - [ ] Construct Claude prompt (see DOCUMENTATION.md)
-  - [ ] Parse JSON response from Claude (strip any accidental markdown fences)
+  - [ ] Construct Agentic AI prompt (see DOCUMENTATION.md)
+  - [ ] Parse JSON response from Agentic Ai (strip any accidental markdown fences)
   - [ ] Return structured scores + feedback + improvement_tip
-  - [ ] Handle parse errors (if Claude returns malformed JSON, retry once)
+  - [ ] Handle parse errors (if Agentic Ai returns malformed JSON, retry once)
 - [ ] **TEST BOTH ENDPOINTS with Postman or curl before moving on**
   - [ ] Test generate-question for 3 different roles
   - [ ] Test evaluate-answer with a weak answer and a strong answer — confirm scores differ meaningfully
@@ -108,7 +103,7 @@ The main event. This is what judges will actually use.
   - [ ] Large textarea for answer (min-height: 200px)
   - [ ] Word count indicator below textarea (target: 150-300 words)
   - [ ] "Submit Answer" button
-    - [ ] Loading state while Claude evaluates (spinner + "Analyzing your answer...")
+    - [ ] Loading state while Agentic Ai evaluates (spinner + "Analyzing your answer...")
     - [ ] On response: animate scores in one by one (use CSS transitions)
     - [ ] Show Clarity, Confidence, Structure, Relevance scores as progress bars
     - [ ] Show Overall score large and centered
@@ -127,7 +122,7 @@ The main event. This is what judges will actually use.
     - [ ] "View Dashboard" and "Practice Again" buttons
 - [ ] Handle edge cases:
   - [ ] User refreshes mid-session → reload state from Supabase
-  - [ ] Claude API fails → show retry button, don't lose the answer
+  - [ ] Agentic Ai API fails → show retry button, don't lose the answer
 
 **Phase 3 checkpoint: Full interview can be completed end-to-end. Data saves correctly.**
 
@@ -137,9 +132,10 @@ The main event. This is what judges will actually use.
 
 This is what makes PrepMate a _product_, not a demo. The judges need to see progress tracking.
 
-- [ ] Build `/dashboard` page
-  - [ ] Header: "Welcome back, [name]" + current streak counter
-  - [ ] "Start New Interview" CTA button (prominent, above the fold)
+- [x] Build `/dashboard` page
+  - [x] Header: "Welcome back, [name]" + current streak counter
+  - [x] "Start New Interview" CTA button (prominent, above the fold)
+  - [x] Create authenticated shell with Sidebar and Topbar
   - [ ] **Score Trend Chart** (Recharts LineChart)
     - [ ] X-axis: Last 10 sessions (date labels)
     - [ ] Y-axis: Overall score (0-100)
@@ -147,17 +143,16 @@ This is what makes PrepMate a _product_, not a demo. The judges need to see prog
   - [ ] **Dimension Breakdown** (Recharts RadarChart)
     - [ ] 4 axes: Clarity, Confidence, Structure, Relevance
     - [ ] Shows average across all-time sessions
-  - [ ] **Stats Row**
-    - [ ] Total sessions completed
-    - [ ] Average overall score
-    - [ ] Best score ever
-    - [ ] Current streak (days)
-  - [ ] **Weakest Area Callout**
-    - [ ] Identify lowest average dimension
-    - [ ] "Your weakest area is Confidence. Practice a focused HR session to improve."
-    - [ ] Button: "Practice Confidence" → starts an HR interview
-  - [ ] **Recent Sessions** list (last 5)
-    - [ ] Date, role, type, score, link to full review
+  - [x] **Stats Row**
+    - [x] Total sessions completed
+    - [x] Average overall score
+    - [x] Best score ever
+    - [x] Current streak (days)
+  - [x] **Weakest Area Callout**
+    - [x] Identify lowest average dimension
+    - [x] "Your weakest area is Confidence. Practice a focused HR session to improve."
+  - [x] **Recent Sessions** list (last 5)
+    - [x] Date, role, type, score, link to full review
 - [ ] Fetch all data in a single Supabase query on page load (join sessions + answers)
 - [ ] Handle empty state (new user with no sessions) — show encouraging onboarding CTA
 
@@ -240,7 +235,7 @@ Break it before the judges do.
   - [ ] View session in history
   - [ ] Log out and log back in
 - [ ] **Edge Case Tests**
-  - [ ] Submit a 1-word answer — does Claude still return valid JSON?
+  - [ ] Submit a 1-word answer — does Agentic Ai still return valid JSON?
   - [ ] Submit a very long answer (500+ words) — does it work?
   - [ ] Refresh mid-interview — does state restore?
   - [ ] Open on mobile — is anything broken?

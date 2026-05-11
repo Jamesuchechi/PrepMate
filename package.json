@@ -1,6 +1,7 @@
 {
   "name": "prepmate",
   "version": "1.0.0",
+  "type": "module",
   "description": "> Practice. Get brutally honest feedback. Walk into every interview ready.",
   "main": "postcss.config.js",
   "directories": {
@@ -27,6 +28,7 @@
     "@mistralai/mistralai": "^2.2.1",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.4",
+    "@tailwindcss/postcss": "^4.3.0",
     "clsx": "^2.1.1",
     "groq-sdk": "^1.2.0",
     "lucide-react": "^1.14.0",

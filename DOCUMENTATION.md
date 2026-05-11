@@ -50,7 +50,7 @@ PrepMate is built on a modern JAMstack architecture optimized for speed of devel
 - **Next.js API routes** keep the GROQ API key server-side — never exposed to the client
 - **Supabase Row Level Security (RLS)** ensures users can only ever access their own data
 - **Vercel deployment** gives us zero-config CI/CD with automatic preview deployments on every push
-- **Claude API** does the heavy cognitive lifting so we ship fast without sacrificing intelligence
+- **Agentic Ai API** does the heavy cognitive lifting so we ship fast without sacrificing intelligence
 
 ---
 
@@ -108,8 +108,8 @@ create table answers (
   score_structure integer,       -- 0-100
   score_relevance integer,       -- 0-100
   overall_score integer,         -- weighted average
-  feedback text,                 -- Claude's written feedback
-  improvement_tip text,          -- single actionable tip from Claude
+  feedback text,                 -- Agentic Ai's written feedback
+  improvement_tip text,          -- single actionable tip from Agentic Ai
   created_at timestamp with time zone default now()
 );
 ```
@@ -138,7 +138,7 @@ create policy "Users own their answers"
 
 ### `POST /api/generate-question`
 
-Generates a contextual interview question using Claude.
+Generates a contextual interview question using Agentic Ai.
 
 **Request Body:**
 
@@ -162,7 +162,7 @@ Generates a contextual interview question using Claude.
 }
 ```
 
-**Internal Claude Prompt:**
+**Internal Agentic Ai Prompt:**
 
 ```
 You are a senior hiring manager conducting a {interview_type} interview
@@ -181,7 +181,7 @@ Return ONLY the question. No preamble, no numbering.
 
 ### `POST /api/evaluate-answer`
 
-Evaluates a candidate's answer using Claude and returns structured scores + feedback.
+Evaluates a candidate's answer using Agentic Ai and returns structured scores + feedback.
 
 **Request Body:**
 
@@ -211,7 +211,7 @@ Evaluates a candidate's answer using Claude and returns structured scores + feed
 }
 ```
 
-**Internal Claude Prompt:**
+**Internal Agentic Ai Prompt:**
 
 ```
 You are an expert interview coach evaluating a candidate's answer.
@@ -248,7 +248,7 @@ Return ONLY valid JSON in this exact format:
 
 ### Model Choice
 
-We use `claude-sonnet-4-20250514` for both endpoints. It hits the right balance of intelligence and response speed for a real-time interview experience. Users should not wait more than 2-3 seconds for feedback.
+We use `Agentic Ai-sonnet-4-20250514` for both endpoints. It hits the right balance of intelligence and response speed for a real-time interview experience. Users should not wait more than 2-3 seconds for feedback.
 
 ### Prompt Engineering Decisions
 
@@ -256,18 +256,18 @@ We use `claude-sonnet-4-20250514` for both endpoints. It hits the right balance 
 
 - We pass previously asked questions to prevent repetition within a session
 - Role and experience level are injected directly to ensure calibration
-- We instruct Claude to return _only_ the question — no formatting, no numbering — making parsing trivial
+- We instruct Agentic Ai to return _only_ the question — no formatting, no numbering — making parsing trivial
 
 **Answer Evaluation:**
 
-- We instruct Claude to return _only_ valid JSON — no markdown fences, no preamble
+- We instruct Agentic Ai to return _only_ valid JSON — no markdown fences, no preamble
 - Scores are integers 0-100 for clean visualization on the frontend
 - The `improvement_tip` field is separated from `feedback` intentionally — one is analytical, one is immediately actionable
-- We pass role and experience level so the bar Claude holds answers to is appropriate (an entry-level answer isn't held to a senior standard)
+- We pass role and experience level so the bar Agentic Ai holds answers to is appropriate (an entry-level answer isn't held to a senior standard)
 
 ### Error Handling
 
-All Claude API calls are wrapped in try/catch. On failure, the UI shows a graceful retry state rather than crashing the session. Partial sessions (incomplete due to errors) are still saved to the database so the user doesn't lose progress.
+All Agentic Ai API calls are wrapped in try/catch. On failure, the UI shows a graceful retry state rather than crashing the session. Partial sessions (incomplete due to errors) are still saved to the database so the user doesn't lose progress.
 
 ---
 
@@ -337,7 +337,7 @@ Sessions are managed by Supabase's built-in session handling. JWT tokens are sto
 PrepMate was built in 72 hours using a feature-first, ship-first methodology:
 
 1. **Core loop first** — The question → answer → feedback loop was built and working within the first 8 hours. Everything else is enhancement.
-2. **API routes before UI** — Both Claude endpoints were tested via Postman before any frontend was built, ensuring the intelligence layer was solid.
+2. **API routes before UI** — Both Agentic Ai endpoints were tested via Postman before any frontend was built, ensuring the intelligence layer was solid.
 3. **Mobile-first layout** — Tailwind breakpoints start small and scale up. The interview screen works on a phone.
 4. **No premature optimization** — We used Supabase's client library directly rather than building abstraction layers. Speed of iteration over architectural purity.
 5. **Continuous deployment** — Every commit to `main` auto-deployed to Vercel, giving us a live URL to test and share throughout the build.
@@ -346,13 +346,13 @@ PrepMate was built in 72 hours using a feature-first, ship-first methodology:
 
 ## Scalability Design
 
-| Concern                  | Our Approach                                                                                       |
-| ------------------------ | -------------------------------------------------------------------------------------------------- |
-| **API Rate Limits**      | Claude API calls are server-side only; we can implement per-user rate limiting via Redis if needed |
-| **Database Load**        | Supabase PostgreSQL scales vertically with one click; RLS handles multi-tenancy natively           |
-| **Frontend Performance** | Next.js static generation for marketing pages; dynamic routes only for authenticated app           |
-| **Cost at Scale**        | Claude API costs ~$0.003 per evaluation; at 10,000 sessions/month that's ~$30 — negligible         |
-| **Global Latency**       | Vercel's edge network serves the frontend from the nearest region automatically                    |
+| Concern                  | Our Approach                                                                                           |
+| ------------------------ | ------------------------------------------------------------------------------------------------------ |
+| **API Rate Limits**      | Agentic Ai API calls are server-side only; we can implement per-user rate limiting via Redis if needed |
+| **Database Load**        | Supabase PostgreSQL scales vertically with one click; RLS handles multi-tenancy natively               |
+| **Frontend Performance** | Next.js static generation for marketing pages; dynamic routes only for authenticated app               |
+| **Cost at Scale**        | Agentic Ai API costs ~$0.003 per evaluation; at 10,000 sessions/month that's ~$30 — negligible         |
+| **Global Latency**       | Vercel's edge network serves the frontend from the nearest region automatically                        |
 
 ---
 

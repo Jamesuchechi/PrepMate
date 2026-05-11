@@ -35,13 +35,13 @@ PrepMate solves this by giving every student an always-available, infinitely pat
 
 ## Tech Stack
 
-| Layer           | Technology                                   |
-| --------------- | -------------------------------------------- |
-| Frontend        | Next.js 14 (App Router) + Tailwind CSS       |
-| AI Brain        | GROQ Claude API (`claude-sonnet-4-20250514`) |
-| Auth & Database | Supabase (Auth + PostgreSQL)                 |
-| Deployment      | Vercel                                       |
-| Version Control | GitHub                                       |
+| Layer           | Technology                                           |
+| --------------- | ---------------------------------------------------- |
+| Frontend        | Next.js 14 (App Router) + Tailwind CSS               |
+| AI Brain        | GROQ Agentic Ai API (`Agentic Ai-sonnet-4-20250514`) |
+| Auth & Database | Supabase (Auth + PostgreSQL)                         |
+| Deployment      | Vercel                                               |
+| Version Control | GitHub                                               |
 
 ---
 
@@ -107,7 +107,7 @@ prepmate/
 │   ├── interview/
 │   └── dashboard/
 ├── lib/
-│   ├── claude.ts
+│   ├── Agentic Ai.ts
 │   ├── supabase.ts
 │   └── utils.ts
 ├── types/
@@ -120,9 +120,9 @@ prepmate/
 
 1. **User signs up** and sets their target role and experience level
 2. **Selects interview mode** — Behavioral, Technical, or HR
-3. **AI generates contextual questions** using Claude, calibrated to role and level
+3. **AI generates contextual questions** using Agentic Ai, calibrated to role and level
 4. **User types or speaks their answer**
-5. **Claude evaluates the answer** and returns a score + detailed written feedback
+5. **Agentic Ai evaluates the answer** and returns a score + detailed written feedback
 6. **Scores are saved** to Supabase and visualized on the dashboard
 7. **User repeats** until confident, tracking their arc over time
 
@@ -135,7 +135,7 @@ prepmate/
 | **Design & Aesthetics** | Clean, modern UI with a professional product feel — not a hackathon demo                           |
 | **Creativity**          | Turns a passive study habit into an active, measurable, AI-coached experience                      |
 | **Real-World Utility**  | Every student applying for a job needs this. The market is massive and the pain is real            |
-| **Scalability**         | Supabase + Vercel scales horizontally; Claude API handles any load                                 |
+| **Scalability**         | Supabase + Vercel scales horizontally; Agentic Ai API handles any load                             |
 | **Innovation**          | Goes beyond Q&A — multi-dimensional scoring and progress tracking make it genuinely differentiated |
 
 ---

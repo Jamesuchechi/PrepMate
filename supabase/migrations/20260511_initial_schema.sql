@@ -36,8 +36,8 @@ create table answers (
   score_structure integer,       -- 0-100
   score_relevance integer,       -- 0-100
   overall_score integer,         -- weighted average
-  feedback text,                 -- Claude's written feedback
-  improvement_tip text,          -- single actionable tip from Claude
+  feedback text,                 -- Agentic Ai's written feedback
+  improvement_tip text,          -- single actionable tip from Agentic Ai
   created_at timestamp with time zone default now()
 );
 
