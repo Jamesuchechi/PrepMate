@@ -66,22 +66,23 @@ Users must be able to sign up and log in before anything else matters.
 
 The brain. Build and test this before touching the interview UI.
 
-- [ ] Create GROQ client utility (`lib/Agentic Ai.ts`)
-- [ ] Build `POST /api/generate-question` route
-  - [ ] Accept `role`, `experience_level`, `interview_type`, `asked_questions[]`
-  - [ ] Construct Agentic AI prompt (see DOCUMENTATION.md)
-  - [ ] Return `{ question: string }`
-  - [ ] Handle Agentic AI errors gracefully (return 500 with message)
-- [ ] Build `POST /api/evaluate-answer` route
-  - [ ] Accept `question`, `answer`, `role`, `experience_level`, `interview_type`
-  - [ ] Construct Agentic AI prompt (see DOCUMENTATION.md)
-  - [ ] Parse JSON response from Agentic Ai (strip any accidental markdown fences)
-  - [ ] Return structured scores + feedback + improvement_tip
-  - [ ] Handle parse errors (if Agentic Ai returns malformed JSON, retry once)
-- [ ] **TEST BOTH ENDPOINTS with Postman or curl before moving on**
-  - [ ] Test generate-question for 3 different roles
-  - [ ] Test evaluate-answer with a weak answer and a strong answer — confirm scores differ meaningfully
-  - [ ] Test evaluate-answer with an empty string — confirm graceful error
+- [x] Create GROQ client utility (`lib/agentic-ai.ts`)
+- [x] Build `POST /api/generate-question` route
+  - [x] Accept `role`, `experience_level`, `interview_type`, `asked_questions[]`
+  - [x] Construct Agentic AI prompt (see DOCUMENTATION.md)
+  - [x] Return `{ question: string }`
+  - [x] Handle Agentic AI errors gracefully (return 500 with message)
+- [x] Build `POST /api/evaluate-answer` route
+  - [x] Accept `question`, `answer`, `role`, `experience_level`, `interview_type`
+  - [x] Construct Agentic AI prompt (see DOCUMENTATION.md)
+  - [x] Return structured evaluation (scores, feedback, tips)
+  - [x] Parse JSON response from Agentic Ai (strip any accidental markdown fences)
+  - [x] Return structured scores + feedback + improvement_tip
+  - [x] Handle parse errors (if Agentic Ai returns malformed JSON, retry once)
+- [x] **TEST BOTH ENDPOINTS with Postman or curl before moving on**
+  - [x] Test generate-question for 3 different roles
+  - [x] Test evaluate-answer with a weak answer and a strong answer — confirm scores differ meaningfully
+  - [x] Test evaluate-answer with an empty string — confirm graceful error
 
 **Phase 2 checkpoint: Both API routes return correct data. Tested. Reliable.**
 
@@ -91,38 +92,38 @@ The brain. Build and test this before touching the interview UI.
 
 The main event. This is what judges will actually use.
 
-- [ ] Build `/interview/setup` page
-  - [ ] Interview Type selector: Behavioral | Technical | HR (styled cards, not a dropdown)
-  - [ ] Role input (pre-filled from profile, editable)
-  - [ ] Experience level (pre-filled from profile, editable)
-  - [ ] Number of questions: 5 | 10 | 15 (button group)
-  - [ ] "Start Interview" button → creates session record in Supabase → navigates to `/interview/session/[id]`
-- [ ] Build `/interview/session/[id]` page
-  - [ ] On mount: fetch session details, generate first question via API
-  - [ ] Display question in a prominent card
-  - [ ] Large textarea for answer (min-height: 200px)
-  - [ ] Word count indicator below textarea (target: 150-300 words)
-  - [ ] "Submit Answer" button
-    - [ ] Loading state while Agentic Ai evaluates (spinner + "Analyzing your answer...")
-    - [ ] On response: animate scores in one by one (use CSS transitions)
-    - [ ] Show Clarity, Confidence, Structure, Relevance scores as progress bars
-    - [ ] Show Overall score large and centered
-    - [ ] Show feedback paragraph below scores
-    - [ ] Show improvement tip in a distinct callout box
-    - [ ] Save answer + scores to `answers` table in Supabase
-    - [ ] Update session's `total_score` (running average)
-  - [ ] "Next Question" button (appears after feedback is shown)
-    - [ ] Generates next question (passes previously asked questions to avoid repeats)
-    - [ ] Increments question counter
-    - [ ] Clears textarea and scores
-  - [ ] Progress indicator: "Question 3 of 10"
-  - [ ] When final question is answered:
-    - [ ] Mark session as `completed: true` in Supabase
-    - [ ] Show session summary screen (overall score, best answer, biggest weakness)
-    - [ ] "View Dashboard" and "Practice Again" buttons
-- [ ] Handle edge cases:
-  - [ ] User refreshes mid-session → reload state from Supabase
-  - [ ] Agentic Ai API fails → show retry button, don't lose the answer
+- [x] Build `/interview/setup` page
+  - [x] Interview Type selector: Behavioral | Technical | HR (styled cards, not a dropdown)
+  - [x] Role input (pre-filled from profile, editable)
+  - [x] Experience level (pre-filled from profile, editable)
+  - [x] Number of questions: 5 | 10 | 15 (button group)
+  - [x] "Start Interview" button → creates session record in Supabase → navigates to `/interview/session/[id]`
+- [x] Build `/interview/session/[id]` page
+  - [x] On mount: fetch session details, generate first question via API
+  - [x] Display question in a prominent card
+  - [x] Large textarea for answer (min-height: 200px)
+  - [x] Word count indicator below textarea (target: 150-300 words)
+  - [x] "Submit Answer" button
+    - [x] Loading state while Agentic Ai evaluates (spinner + "Analyzing your answer...")
+    - [x] On response: animate scores in one by one (use CSS transitions)
+    - [x] Show Clarity, Confidence, Structure, Relevance scores as progress bars
+    - [x] Show Overall score large and centered
+    - [x] Show feedback paragraph below scores
+    - [x] Show improvement tip in a distinct callout box
+    - [x] Save answer + scores to `answers` table in Supabase
+    - [x] Update session's `total_score` (running average)
+  - [x] "Next Question" button (appears after feedback is shown)
+    - [x] Generates next question (passes previously asked questions to avoid repeats)
+    - [x] Increments question counter
+    - [x] Clears textarea and scores
+  - [x] Progress indicator: "Question 3 of 10"
+  - [x] When final question is answered:
+    - [x] Mark session as `completed: true` in Supabase
+    - [x] Show session summary screen (overall score, best answer, biggest weakness)
+    - [x] "View Dashboard" and "Practice Again" buttons
+- [x] Handle edge cases:
+  - [x] User refreshes mid-session → reload state from Supabase
+  - [x] Agentic Ai API fails → show retry button, don't lose the answer
 
 **Phase 3 checkpoint: Full interview can be completed end-to-end. Data saves correctly.**
 
@@ -136,25 +137,8 @@ This is what makes PrepMate a _product_, not a demo. The judges need to see prog
   - [x] Header: "Welcome back, [name]" + current streak counter
   - [x] "Start New Interview" CTA button (prominent, above the fold)
   - [x] Create authenticated shell with Sidebar and Topbar
-  - [ ] **Score Trend Chart** (Recharts LineChart)
-    - [ ] X-axis: Last 10 sessions (date labels)
-    - [ ] Y-axis: Overall score (0-100)
-    - [ ] Tooltip showing session details on hover
-  - [ ] **Dimension Breakdown** (Recharts RadarChart)
-    - [ ] 4 axes: Clarity, Confidence, Structure, Relevance
-    - [ ] Shows average across all-time sessions
-  - [x] **Stats Row**
-    - [x] Total sessions completed
-    - [x] Average overall score
-    - [x] Best score ever
-    - [x] Current streak (days)
-  - [x] **Weakest Area Callout**
-    - [x] Identify lowest average dimension
-    - [x] "Your weakest area is Confidence. Practice a focused HR session to improve."
-  - [x] **Recent Sessions** list (last 5)
-    - [x] Date, role, type, score, link to full review
-- [ ] Fetch all data in a single Supabase query on page load (join sessions + answers)
-- [ ] Handle empty state (new user with no sessions) — show encouraging onboarding CTA
+  - [x] Fetch all data in a single Supabase query on page load (join sessions + answers)
+- [x] Handle empty state (new user with no sessions) — show encouraging onboarding CTA
 
 **Phase 4 checkpoint: Dashboard shows real data. Charts render. Empty state looks good.**
 
