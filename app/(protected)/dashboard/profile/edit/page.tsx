@@ -29,32 +29,56 @@ export default function EditProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [skillStats, setSkillStats] = useState({
+    clarity: 0,
+    confidence: 0,
+    structure: 0,
+    relevance: 0
+  });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
   useEffect(() => {
-    async function getProfile() {
+    async function fetchData() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setEmail(user.email || '');
-        const { data } = await supabase
+        
+        // Fetch Profile
+        const { data: profileData } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', user.id)
           .single();
         
-        if (data) {
-          setProfile(data);
-          setFullName(data.full_name || '');
-          setTargetRole(data.target_role || '');
-          setExperienceLevel(data.experience_level || '');
-          setAvatarUrl(data.avatar_url || null);
+        if (profileData) {
+          setProfile(profileData);
+          setFullName(profileData.full_name || '');
+          setTargetRole(profileData.target_role || '');
+          setExperienceLevel(profileData.experience_level || '');
+          setAvatarUrl(profileData.avatar_url || null);
+        }
+
+        // Fetch Skill Averages
+        const { data: answers } = await supabase
+          .from('answers')
+          .select('score_clarity, score_confidence, score_structure, score_relevance')
+          .eq('user_id', user.id);
+
+        if (answers && answers.length > 0) {
+          const count = answers.length;
+          setSkillStats({
+            clarity: Math.round(answers.reduce((acc, a) => acc + (a.score_clarity || 0), 0) / count),
+            confidence: Math.round(answers.reduce((acc, a) => acc + (a.score_confidence || 0), 0) / count),
+            structure: Math.round(answers.reduce((acc, a) => acc + (a.score_structure || 0), 0) / count),
+            relevance: Math.round(answers.reduce((acc, a) => acc + (a.score_relevance || 0), 0) / count),
+          });
         }
       }
       setLoading(false);
     }
-    getProfile();
+    fetchData();
   }, []);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -273,25 +297,37 @@ export default function EditProfilePage() {
               <div className="space-y-1">
                 <div className="flex justify-between text-xs font-bold uppercase tracking-tighter text-slate-400">
                   <span>Clarity</span>
-                  <span>75%</span>
+                  <span>{skillStats.clarity}%</span>
                 </div>
                 <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-accent w-[75%]"></div>
+                  <div className="h-full bg-accent" style={{ width: `${skillStats.clarity}%` }}></div>
                 </div>
               </div>
               <div className="space-y-1">
                 <div className="flex justify-between text-xs font-bold uppercase tracking-tighter text-slate-400">
                   <span>Confidence</span>
-                  <span>40%</span>
+                  <span>{skillStats.confidence}%</span>
                 </div>
                 <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-orange-500 w-[40%]"></div>
+                  <div className="h-full bg-orange-500" style={{ width: `${skillStats.confidence}%` }}></div>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs font-bold uppercase tracking-tighter text-slate-400">
+                  <span>Structure</span>
+                  <span>{skillStats.structure}%</span>
+                </div>
+                <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500" style={{ width: `${skillStats.structure}%` }}></div>
                 </div>
               </div>
             </div>
-            <button className="w-full mt-6 py-3 border border-slate-700 text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all">
+            <Link 
+              href="/dashboard"
+              className="w-full block mt-6 py-3 border border-slate-700 text-center text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all"
+            >
               View Detailed Analytics
-            </button>
+            </Link>
           </div>
 
           <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">

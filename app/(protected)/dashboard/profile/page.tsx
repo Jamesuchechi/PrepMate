@@ -11,7 +11,8 @@ import {
   Briefcase,
   TrendingUp,
   ChevronRight,
-  Edit3
+  Edit3,
+  Award
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -20,23 +21,49 @@ export default function ProfileReadonlyPage() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
   const [email, setEmail] = useState('');
+  const [stats, setStats] = useState({
+    avgScore: 0,
+    totalSessions: 0,
+    completedFirst: false,
+    streakProgress: 0
+  });
+
   const supabase = createClient();
 
   useEffect(() => {
-    async function getProfile() {
+    async function fetchData() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setEmail(user.email || '');
-        const { data } = await supabase
+        
+        // Fetch Profile
+        const { data: profileData } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', user.id)
           .single();
-        if (data) setProfile(data);
+        if (profileData) setProfile(profileData);
+
+        // Fetch Sessions for Stats
+        const { data: sessions } = await supabase
+          .from('sessions')
+          .select('total_score, completed')
+          .eq('user_id', user.id)
+          .eq('completed', true);
+
+        if (sessions && sessions.length > 0) {
+          const total = sessions.reduce((acc, s) => acc + (s.total_score || 0), 0);
+          setStats({
+            avgScore: Math.round(total / sessions.length),
+            totalSessions: sessions.length,
+            completedFirst: true,
+            streakProgress: Math.min(((profileData?.current_streak || 0) / 7) * 100, 100)
+          });
+        }
       }
       setLoading(false);
     }
-    getProfile();
+    fetchData();
   }, []);
 
   if (loading) {
@@ -102,35 +129,44 @@ export default function ProfileReadonlyPage() {
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Interview Focus</p>
-                <p className="text-slate-900 dark:text-white font-medium">General Interviewing</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Sessions Completed</p>
+                <p className="text-slate-900 dark:text-white font-medium">{stats.totalSessions}</p>
               </div>
             </div>
           </div>
 
-          {/* Activity Placeholder */}
+          {/* Achievements */}
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-8">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">Recent Achievements</h3>
               <Trophy className="text-yellow-500" size={20} />
             </div>
             <div className="flex flex-wrap gap-4">
-              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
+              <div className={`p-4 rounded-2xl border transition-all flex items-center gap-3 ${
+                stats.completedFirst 
+                  ? 'bg-blue-500/5 border-blue-500/20 text-blue-600' 
+                  : 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700 opacity-50'
+              }`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${stats.completedFirst ? 'bg-blue-500/10' : 'bg-slate-200 dark:bg-slate-700'}`}>
                   <TrendingUp size={20} />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">First Session</p>
-                  <p className="text-[10px] text-slate-500 uppercase font-bold">Completed</p>
+                  <p className="text-sm font-bold">First Session</p>
+                  <p className="text-[10px] uppercase font-bold">{stats.completedFirst ? 'Completed' : 'Locked'}</p>
                 </div>
               </div>
-              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 flex items-center gap-3 opacity-50">
-                <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-400">
-                  <Calendar size={20} />
+              
+              <div className={`p-4 rounded-2xl border transition-all flex items-center gap-3 ${
+                profile?.current_streak >= 7
+                  ? 'bg-orange-500/5 border-orange-500/20 text-orange-600' 
+                  : 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700 opacity-50'
+              }`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${profile?.current_streak >= 7 ? 'bg-orange-500/10' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                  <Award size={20} />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">7 Day Streak</p>
-                  <p className="text-[10px] text-slate-500 uppercase font-bold">In Progress</p>
+                  <p className="text-sm font-bold">7 Day Streak</p>
+                  <p className="text-[10px] uppercase font-bold">{profile?.current_streak >= 7 ? 'Achieved' : 'In Progress'}</p>
                 </div>
               </div>
             </div>
@@ -149,10 +185,13 @@ export default function ProfileReadonlyPage() {
               <div>
                 <div className="flex justify-between text-xs font-bold uppercase tracking-tighter text-slate-400 mb-2">
                   <span>Current Streak</span>
-                  <span className="text-white">{profile?.current_streak || 0} Days</span>
+                  <span className="text-white">{profile?.current_streak || 0} / 7 Days</span>
                 </div>
                 <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-accent w-[30%]"></div>
+                  <div 
+                    className="h-full bg-accent transition-all duration-1000" 
+                    style={{ width: `${stats.streakProgress}%` }}
+                  ></div>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -161,7 +200,7 @@ export default function ProfileReadonlyPage() {
                   <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Best Streak</p>
                 </div>
                 <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-                  <p className="text-2xl font-bold">--</p>
+                  <p className="text-2xl font-bold">{stats.avgScore}%</p>
                   <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Avg Score</p>
                 </div>
               </div>

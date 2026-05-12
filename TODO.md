@@ -148,20 +148,20 @@ This is what makes PrepMate a _product_, not a demo. The judges need to see prog
 
 Judges will want to drill into past sessions to validate the product depth.
 
-- [ ] Build `/history` page
-  - [ ] List all sessions, newest first
-  - [ ] Each session row: date, role, interview type, score badge, expand button
-  - [ ] Expandable section per session: shows all Q&A pairs with scores and feedback
-  - [ ] Filter by interview type (All | Behavioral | Technical | HR)
-  - [ ] Filter by date range (This Week | This Month | All Time)
-- [ ] Build `/history/[session_id]` page (full session review)
-  - [ ] Session summary at top
-  - [ ] Each answer displayed as a card:
-    - [ ] Question
-    - [ ] User's answer
-    - [ ] Score breakdown (4 bars)
-    - [ ] Feedback
-    - [ ] Improvement tip
+- [x] Build `/history` page
+  - [x] List all sessions, newest first
+  - [x] Each session row: date, role, interview type, score badge, expand button
+  - [x] Expandable section per session: shows all Q&A pairs with scores and feedback
+  - [x] Filter by interview type (All | Behavioral | Technical | HR)
+  - [x] Filter by date range (This Week | This Month | All Time)
+- [x] Build `/history/[session_id]` page (full session review)
+  - [x] Session summary at top
+  - [x] Each answer displayed as a card:
+    - [x] Question
+    - [x] User's answer
+    - [x] Score breakdown (4 bars)
+    - [x] Feedback
+    - [x] Improvement tip
 
 **Phase 5 checkpoint: All past sessions browsable. Drill-down works.**
 
@@ -171,33 +171,29 @@ Judges will want to drill into past sessions to validate the product depth.
 
 This is where good becomes great. Judges score on Design & Aesthetics. Don't skip this.
 
-- [ ] **Global Design System**
-  - [ ] Define color palette in `tailwind.config.ts` (dark navy + electric accent)
-  - [ ] Typography: Import a distinctive font pair from Google Fonts
-  - [ ] Consistent border radius, shadow, and spacing tokens
-- [ ] **Landing Page** (`/`)
-  - [ ] Hero section: headline, subheadline, "Start Free" CTA
-  - [ ] Feature highlights (3 columns: Practice, Feedback, Track)
-  - [ ] Social proof placeholder ("Built for students who are serious")
-  - [ ] Footer with GitHub link
-- [ ] **Navigation**
-  - [ ] Clean top nav with logo, links, and user avatar dropdown
-  - [ ] Mobile hamburger menu
-  - [ ] Active link highlighting
-- [ ] **Loading States**
-  - [ ] Skeleton loaders for dashboard charts while data fetches
-  - [ ] Spinner + message during AI evaluation
-  - [ ] Optimistic UI where possible
-- [ ] **Score Animations**
-  - [ ] Scores count up from 0 to final value (CSS counter animation)
-  - [ ] Progress bars animate width on reveal
-  - [ ] Stagger the four dimension scores (50ms delay each)
-- [ ] **Micro-interactions**
-  - [ ] Button hover states
-  - [ ] Card hover lift effect
-  - [ ] Smooth page transitions
-- [ ] **Mobile Responsiveness**
-  - [ ] Test on 375px (iPhone SE)
+- [x] **Global Design System**
+  - [x] Define color palette in `tailwind.config.ts` (dark navy + electric accent)
+  - [x] Typography: Import a distinctive font pair from Google Fonts
+  - [x] Consistent border radius, shadow, and spacing tokens
+
+- [x] **Navigation**
+  - [x] Clean top nav with logo, links, and user avatar dropdown
+  - [x] Mobile hamburger menu
+  - [x] Active link highlighting
+- [x] **Loading States**
+  - [x] Skeleton loaders for dashboard charts while data fetches
+  - [x] Spinner + message during AI evaluation
+  - [x] Optimistic UI where possible
+- [x] **Score Animations**
+  - [x] Scores count up from 0 to final value (CSS counter animation)
+  - [x] Progress bars animate width on reveal
+  - [x] Stagger the four dimension scores (50ms delay each)
+- [x] **Micro-interactions**
+  - [x] Button hover states
+  - [x] Card hover lift effect
+  - [x] Smooth page transitions
+- [x] **Mobile Responsiveness**
+  - [x] Test on 375px (iPhone SE)
   - [ ] Test on 768px (tablet)
   - [ ] Fix any layout breaks
 - [ ] **Dark/Light mode** (if time permits — dark looks better in demos)
