@@ -16,7 +16,10 @@ import {
   ChevronRight,
   Home,
   Mic,
-  MicOff
+  MicOff,
+  Volume2,
+  VolumeX,
+  Speaker
 } from 'lucide-react';
 import Link from 'next/link';
 import CountUp from '@/components/animations/CountUp';
@@ -45,6 +48,7 @@ export default function InterviewSessionPage() {
   const [isTranscribing, setIsTranscribing] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const [isSpeechEnabled, setIsSpeechEnabled] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -204,12 +208,15 @@ export default function InterviewSessionPage() {
       window.speechSynthesis.cancel();
       
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.95; // Slightly slower for professional feel
+      utterance.rate = 1.0; 
       utterance.pitch = 1.0;
       
-      // Try to find a professional sounding voice
       const voices = window.speechSynthesis.getVoices();
-      const preferredVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Samantha'));
+      const preferredVoice = voices.find(v => 
+        v.name.includes('Google US English') || 
+        v.name.includes('Samantha') || 
+        v.name.includes('English (United States)')
+      );
       if (preferredVoice) utterance.voice = preferredVoice;
 
       window.speechSynthesis.speak(utterance);
@@ -242,8 +249,10 @@ export default function InterviewSessionPage() {
       if (data.error) throw new Error(data.error);
       setCurrentQuestion(data.question);
       
-      // Speak the question
-      speakText(data.question);
+      // Speak the question only if enabled
+      if (isSpeechEnabled) {
+        speakText(data.question);
+      }
     } catch (err: any) {
       setError("Failed to generate question. Please try again.");
     } finally {
@@ -407,10 +416,34 @@ export default function InterviewSessionPage() {
                 <BarChart3 size={18} />
                 <span className="text-sm font-black uppercase tracking-widest">Interviewer Question</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/10 rounded-full border border-blue-500/20">
-                <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">
-                  Question {answers.length + (evaluation ? 0 : 1)} of {session?.question_count}
-                </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const nextState = !isSpeechEnabled;
+                    setIsSpeechEnabled(nextState);
+                    if (nextState) {
+                      speakText("Voice coach enabled");
+                    } else {
+                      window.speechSynthesis.cancel();
+                    }
+                  }}
+                  className={`flex items-center gap-2 px-3 py-1 rounded-full border transition-all ${
+                    isSpeechEnabled 
+                      ? 'bg-blue-500/10 border-blue-500/20 text-blue-500' 
+                      : 'bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-400'
+                  }`}
+                  title={isSpeechEnabled ? "Disable AI Voice Coach" : "Enable AI Voice Coach"}
+                >
+                  {isSpeechEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
+                  <span className="text-[10px] font-black uppercase tracking-widest">
+                    {isSpeechEnabled ? 'Voice On' : 'Voice Off'}
+                  </span>
+                </button>
+                <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/10 rounded-full border border-blue-500/20">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">
+                    Question {answers.length + (evaluation ? 0 : 1)} of {session?.question_count}
+                  </span>
+                </div>
               </div>
             </div>
             <h2 className="text-2xl md:text-3xl font-bold leading-tight text-slate-900 dark:text-white">
@@ -504,7 +537,7 @@ export default function InterviewSessionPage() {
                     className="p-2 text-slate-400 hover:text-blue-500 transition-colors"
                     title="Speak feedback"
                   >
-                    <Mic size={18} />
+                    <Volume2 size={18} />
                   </button>
                 </div>
                 <p className="text-slate-600 dark:text-slate-300 leading-relaxed italic">
