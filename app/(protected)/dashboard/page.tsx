@@ -34,6 +34,7 @@ import {
   PolarAngleAxis 
 } from 'recharts';
 import DashboardSkeleton from '@/components/dashboard/DashboardSkeleton';
+import ReadinessCertificate from '@/components/ReadinessCertificate';
 import { motion, Variants } from 'framer-motion';
 
 const containerVariants: Variants = {
@@ -168,6 +169,23 @@ export default function DashboardPage() {
           </div>
         ))}
       </motion.div>
+      
+      {/* Certificate Section (Conditional) */}
+      {stats.avgScore >= 90 && stats.totalSessions >= 5 && (
+        <motion.div variants={itemVariants} className="space-y-6">
+          <div className="flex items-center gap-3">
+            <Award className="text-accent" size={24} />
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Your Elite Achievement</h2>
+          </div>
+          <ReadinessCertificate 
+            userName={profile?.full_name || 'Candidate'}
+            role={profile?.target_role || 'Software Engineer'}
+            averageScore={stats.avgScore}
+            totalSessions={stats.totalSessions}
+            date={new Date().toLocaleDateString()}
+          />
+        </motion.div>
+      )}
 
       <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Charts area */}

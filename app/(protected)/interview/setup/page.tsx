@@ -29,6 +29,15 @@ const ROLES = [
   "Customer Success"
 ];
 
+const COMPANIES = [
+  { id: 'none', name: 'General Practice', logo: '/images/logo.png' },
+  { id: 'google', name: 'Google', logo: 'https://www.google.com/favicon.ico' },
+  { id: 'amazon', name: 'Amazon', logo: 'https://www.amazon.com/favicon.ico' },
+  { id: 'meta', name: 'Meta', logo: 'https://www.facebook.com/favicon.ico' },
+  { id: 'netflix', name: 'Netflix', logo: 'https://www.netflix.com/favicon.ico' },
+  { id: 'apple', name: 'Apple', logo: 'https://www.apple.com/favicon.ico' }
+];
+
 const COACHES = [
   {
     id: 'mentor',
@@ -62,6 +71,7 @@ export default function InterviewSetupPage() {
   const [type, setType] = useState('behavioral');
   const [count, setCount] = useState(5);
   const [coach, setCoach] = useState('mentor');
+  const [targetCompany, setTargetCompany] = useState('none');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -81,6 +91,7 @@ export default function InterviewSetupPage() {
           interview_type: type,
           question_count: count,
           coach_personality: coach,
+          target_company: targetCompany === 'none' ? null : targetCompany,
           completed: false,
           total_score: 0
         })
@@ -104,6 +115,31 @@ export default function InterviewSetupPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="space-y-8">
+          {/* Company Track */}
+          <div className="space-y-4">
+            <label className="text-sm font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+              <Target size={16} className="text-accent" />
+              Company Battle Path
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {COMPANIES.map(c => (
+                <button
+                  key={c.id}
+                  onClick={() => setTargetCompany(c.id)}
+                  className={`
+                    flex items-center gap-2 px-4 py-2 rounded-xl border-2 transition-all
+                    ${targetCompany === c.id 
+                      ? 'border-accent bg-accent/5 text-slate-900 dark:text-white font-bold' 
+                      : 'border-slate-100 dark:border-white/5 text-slate-500 hover:border-slate-200 dark:hover:border-white/10'}
+                  `}
+                >
+                  <img src={c.logo} alt={c.name} className="w-4 h-4 object-contain grayscale group-hover:grayscale-0" />
+                  <span className="text-[10px] uppercase tracking-widest">{c.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Role Selection */}
           <div className="space-y-4">
             <label className="text-sm font-black uppercase tracking-widest text-slate-400">Target Role</label>

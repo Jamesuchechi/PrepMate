@@ -64,6 +64,11 @@
   - [x] Create "The Mentor" (Soft, encouraging)
   - [x] Create "The Technical Lead" (Strict, detail-oriented)
   - [x] Create "The HR Manager" (Focus on cultural fit)
+- [x] **Resume Management Suite**
+  - [x] Add "Resumes" to sidebar navigation
+  - [x] Create Resume List page (Gallery view)
+  - [x] Create Resume Detail page with persistent AI analysis and Roast
+  - [x] Implement multi-resume support in database
 
 ## 🟢 PHASE 9 — Monetization & Pro Features
 *The path to a sustainable product.*
@@ -80,30 +85,30 @@
   - [ ] Comparison vs. "Average User" for specific roles
   - [ ] Detailed "Grammar & Pacing" analysis in feedback
 
-## 🔴 PHASE 10 — Company Battle Paths
+## ✅ PHASE 10 — Company Battle Paths (Completed)
 *The final frontier: Land the dream job.*
 
-- [ ] **The "Google/FAANG" Track**
-  - [ ] Specialized question bank for top-tier tech companies
-  - [ ] Focus on specific "Leadership Principles" (Amazon style)
-- [ ] **Interview Readiness Certificate**
-  - [ ] Generate a "Ready for Interview" certificate after hitting 90% average
-- [ ] **Interview Warm-up (PWA)**
-  - [ ] Add offline-first "Flashcards" for quick technical review
+- [x] **The "Google/FAANG" Track**
+  - [x] Specialized question bank for top-tier tech companies
+  - [x] Focus on specific "Leadership Principles" (Amazon style)
+- [x] **Interview Readiness Certificate**
+  - [x] Generate a "Ready for Interview" certificate after hitting 90% average
+- [x] **Interview Warm-up (PWA)**
+  - [x] Add offline-first "Flashcards" for quick technical review
 
-## 🟡 PHASE 11 — The Career Suite (AI Resume Builder)
+## ✅ PHASE 11 — The Career Suite (AI Resume Builder) (Completed)
 *Go from practiced candidate to hired professional.*
 
-- [ ] **AI-Powered Resume Architect**
-  - [ ] **STAR Bullet Refiner**: Auto-convert raw points into high-impact impact-driven metrics
-  - [ ] **Resume-to-Interview Bridge**: Auto-suggest interview questions based on newly added resume projects
-  - [ ] **Skill Validation**: "Verified by PrepMate" badges for skills demonstrated in top-scoring sessions
-- [ ] **Template Gallery**
-  - [ ] **The "Silicon Valley"**: Minimalist, high-readability tech template
-  - [ ] **The "Executive"**: Bold, authoritative design for senior roles
-  - [ ] **The "Creative"**: Dynamic, multi-column layout for designers/marketers
-  - [ ] **The "Academic"**: Detailed, CV-style layout for research/education
-- [ ] **Export & Optimization**
-  - [ ] **Real-time PDF Generator**: High-fidelity export with CSS-to-PDF logic
-  - [ ] **ATS Compatibility Scanner**: Real-time "Parseability Score"
-  - [ ] **Job Description Tailoring**: Paste a job URL to auto-reorder bullets for maximum relevance
+- [x] **AI-Powered Resume Architect**
+  - [x] **STAR Bullet Refiner**: Auto-convert raw points into high-impact impact-driven metrics
+  - [x] **Resume-to-Interview Bridge**: Auto-suggest interview questions based on newly added resume projects
+  - [x] **Skill Validation**: "Verified by PrepMate" badges for skills demonstrated in top-scoring sessions
+- [x] **Template Gallery**
+  - [x] **The "Silicon Valley"**: Minimalist, high-readability tech template
+  - [x] **The "Executive"**: Bold, authoritative design for senior roles
+  - [x] **The "Creative"**: Dynamic, multi-column layout for designers/marketers
+  - [x] **The "Academic"**: Detailed, CV-style layout for research/education
+- [x] **Export & Optimization**
+  - [x] **Real-time PDF Generator**: High-fidelity export with CSS-to-PDF logic
+  - [x] **ATS Compatibility Scanner**: Real-time "Parseability Score"
+  - [x] **Job Description Tailoring**: Paste a job URL to auto-reorder bullets for maximum relevance

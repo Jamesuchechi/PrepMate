@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function EditProfilePage() {
   const [loading, setLoading] = useState(true);
@@ -46,6 +47,7 @@ export default function EditProfilePage() {
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const resumeInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchData() {
@@ -158,19 +160,45 @@ export default function EditProfilePage() {
         setTargetRole(parseResult.data.suggested_role);
       }
 
-      // 3. Update profile
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ 
+      // 3. Update profile & Create Resume Entry
+      const { data: currentResumes } = await supabase
+        .from('resumes')
+        .select('id')
+        .eq('user_id', user.id);
+
+      const isFirst = !currentResumes || currentResumes.length === 0;
+
+      // Create Entry in Resumes Table
+      const { data: newResume, error: resumeError } = await supabase
+        .from('resumes')
+        .insert({
+          user_id: user.id,
+          name: `${parseResult.data.suggested_role || 'New'} Resume - ${new Date().toLocaleDateString()}`,
           resume_url: url,
           resume_data: parseResult.data,
-          experience_level: parseResult.data.experience_level || experienceLevel,
-          target_role: targetRole || parseResult.data.suggested_role
+          is_active: isFirst
         })
-        .eq('id', user.id);
+        .select()
+        .single();
 
-      if (updateError) throw updateError;
-      setSuccess('Resume analyzed successfully!');
+      if (resumeError) throw resumeError;
+
+      // Update Profile (Sync Active)
+      if (isFirst) {
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ 
+            resume_url: url,
+            resume_data: parseResult.data,
+            experience_level: parseResult.data.experience_level || experienceLevel,
+            target_role: targetRole || parseResult.data.suggested_role
+          })
+          .eq('id', user.id);
+        if (updateError) throw updateError;
+      }
+
+      setSuccess('Resume analyzed and added to your collection!');
+      router.push(`/dashboard/resumes/${newResume.id}`);
     } catch (err: any) {
       console.error(err);
       setError(err.message);

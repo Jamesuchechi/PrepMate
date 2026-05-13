@@ -232,7 +232,9 @@ export default function InterviewSessionPage() {
           experience_level: session?.experience_level || 'entry',
           interview_type: session?.interview_type || 'behavioral',
           asked_questions: askedQuestions,
-          resume_data: rData || resumeData
+          resume_data: rData || resumeData,
+          coach_personality: session?.coach_personality || 'mentor',
+          target_company: session?.target_company
         })
       });
 

@@ -13,7 +13,8 @@ import {
   X,
   Target,
   Bell,
-  BarChart3
+  BarChart3,
+  FileText
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
@@ -21,6 +22,7 @@ import Image from 'next/image';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
+  { icon: FileText, label: 'Resumes', href: '/dashboard/resumes' },
   { icon: BarChart3, label: 'Analytics', href: '/dashboard/analytics' },
   { icon: Target, label: 'Practice', href: '/interview/setup' },
   { icon: History, label: 'History', href: '/history' },
