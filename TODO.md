@@ -194,9 +194,9 @@ This is where good becomes great. Judges score on Design & Aesthetics. Don't ski
   - [x] Smooth page transitions
 - [x] **Mobile Responsiveness**
   - [x] Test on 375px (iPhone SE)
-  - [ ] Test on 768px (tablet)
-  - [ ] Fix any layout breaks
-- [ ] **Dark/Light mode** (if time permits — dark looks better in demos)
+  - [x] Test on 768px (tablet)
+  - [x] Fix any layout breaks
+- [x] **Dark/Light mode** (if time permits — dark looks better in demos)
 
 **Phase 6 checkpoint: Product looks like something a real company shipped.**
 

@@ -5,23 +5,26 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, 
-  MessageSquare, 
   History, 
   User, 
   Settings, 
   LogOut,
-  ChevronRight,
   Menu,
   X,
-  Target
+  Target,
+  Bell,
+  BarChart3
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
+  { icon: BarChart3, label: 'Analytics', href: '/dashboard/analytics' },
   { icon: Target, label: 'Practice', href: '/interview/setup' },
   { icon: History, label: 'History', href: '/history' },
+  { icon: Bell, label: 'Notifications', href: '/dashboard/notifications' },
   { icon: User, label: 'Profile', href: '/dashboard/profile' },
   { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
 ];
@@ -76,8 +79,13 @@ export default function Sidebar() {
         {/* Logo Section */}
         <div className="p-8">
           <Link href="/dashboard" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center shadow-lg shadow-accent/20 group-hover:scale-110 transition-transform">
-              <MessageSquare className="text-white" size={20} />
+            <div className="relative w-10 h-10 group-hover:scale-110 transition-transform">
+              <Image 
+                src="/images/logo.png" 
+                alt="PrepMate Logo" 
+                fill 
+                className="object-contain"
+              />
             </div>
             <span className="text-xl font-black tracking-tighter text-slate-900 dark:text-white uppercase">
               PrepMate

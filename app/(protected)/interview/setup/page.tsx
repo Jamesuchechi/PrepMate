@@ -10,40 +10,13 @@ import {
   ArrowRight, 
   Clock, 
   Target,
-  Settings2
+  Settings2,
+  Briefcase,
+  Zap,
+  Sparkles,
+  Code2
 } from 'lucide-react';
-
-const INTERVIEW_TYPES = [
-  {
-    id: 'behavioral',
-    title: 'Behavioral',
-    description: 'STAR method, soft skills, and past experiences.',
-    icon: Users,
-    color: 'text-blue-500',
-    bg: 'bg-blue-500/10',
-    border: 'border-blue-500/20'
-  },
-  {
-    id: 'technical',
-    title: 'Technical',
-    description: 'Core concepts, problem-solving, and role-specific skills.',
-    icon: Code,
-    color: 'text-purple-500',
-    bg: 'bg-purple-500/10',
-    border: 'border-purple-500/20'
-  },
-  {
-    id: 'hr',
-    title: 'HR / Cultural',
-    description: 'Culture fit, expectations, and values alignment.',
-    icon: UserCheck,
-    color: 'text-green-500',
-    bg: 'bg-green-500/10',
-    border: 'border-green-500/20'
-  }
-];
-
-const QUESTION_COUNTS = [5, 10, 15];
+import Link from 'next/link';
 
 export default function InterviewSetupPage() {
   const [loading, setLoading] = useState(true);
@@ -67,11 +40,10 @@ export default function InterviewSetupPage() {
           .select('*')
           .eq('id', user.id)
           .single();
-        
         if (data) {
           setProfile(data);
           setRole(data.target_role || '');
-          setExperienceLevel(data.experience_level || 'entry');
+          setExperienceLevel(data.experience_level || 'mid');
         }
       }
       setLoading(false);
@@ -79,13 +51,13 @@ export default function InterviewSetupPage() {
     getProfile();
   }, []);
 
-  const handleStartInterview = async () => {
+  const handleStart = async () => {
     setStarting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase
+      const { data: session, error } = await supabase
         .from('sessions')
         .insert({
           user_id: user.id,
@@ -93,15 +65,16 @@ export default function InterviewSetupPage() {
           role: role,
           experience_level: experienceLevel,
           question_count: questionCount,
-          completed: false
+          completed: false,
+          total_score: 0
         })
         .select()
         .single();
 
       if (error) throw error;
-      router.push(`/interview/session/${data.id}`);
-    } catch (err: any) {
-      alert(err.message);
+      router.push(`/interview/session/${session.id}`);
+    } catch (err) {
+      console.error(err);
       setStarting(false);
     }
   };
@@ -109,136 +82,154 @@ export default function InterviewSetupPage() {
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-accent"></div>
       </div>
     );
   }
 
   return (
     <div className="max-w-4xl mx-auto space-y-12 pb-20">
-      <div className="text-center space-y-4">
-        <h1 className="text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-linear-to-r from-white via-white to-slate-500">
-          Configure Your Session
+      {/* Header Section */}
+      <div className="text-center space-y-4 max-w-2xl mx-auto">
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/10 text-blue-600 rounded-full border border-blue-500/20 animate-fade-in">
+          <Sparkles size={16} />
+          <span className="text-xs font-black uppercase tracking-widest">Setup Phase</span>
+        </div>
+        <h1 className="text-5xl font-black tracking-tight text-slate-900 dark:text-white">
+          Configure Your <span className="text-blue-600">Session</span>
         </h1>
-        <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+        <p className="text-slate-500 dark:text-slate-400 text-lg font-medium leading-relaxed">
           Customize your AI-powered interview to focus on what matters most for your career.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {INTERVIEW_TYPES.map((type) => (
+      {/* Interview Types */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        {[
+          { id: 'behavioral', title: 'Behavioral', desc: 'STAR method, soft skills, and past experiences.', icon: Users },
+          { id: 'technical', title: 'Technical', desc: 'Core concepts, problem-solving, and role-specific skills.', icon: Code2 },
+          { id: 'cultural', title: 'HR / Cultural', desc: 'Culture fit, expectations, and values alignment.', icon: UserCheck },
+        ].map((type) => (
           <button
             key={type.id}
             onClick={() => setSelectedType(type.id)}
-            className={`relative p-6 rounded-3xl border-2 text-left transition-all duration-300 group ${
-              selectedType === type.id 
-                ? `${type.border} bg-[#0A0A0A] shadow-2xl shadow-white/5 scale-[1.02]` 
-                : 'border-white/5 bg-transparent hover:border-white/10'
+            className={`p-8 rounded-[40px] text-left transition-all duration-500 relative overflow-hidden group border-2 ${
+              type.id === selectedType 
+                ? 'bg-slate-900 dark:bg-white text-white dark:text-black border-slate-900 dark:border-white shadow-2xl scale-[1.02]' 
+                : 'bg-white dark:bg-slate-900/50 text-slate-900 dark:text-white border-slate-100 dark:border-white/5 hover:border-blue-500/30'
             }`}
           >
-            <div className={`w-12 h-12 rounded-2xl ${type.bg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-              <type.icon className={type.color} size={24} />
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 transition-colors ${
+              type.id === selectedType ? 'bg-blue-500 text-white' : 'bg-blue-500/10 text-blue-600'
+            }`}>
+              <type.icon size={24} />
             </div>
             <h3 className="text-xl font-bold mb-2">{type.title}</h3>
-            <p className="text-sm text-slate-500 leading-relaxed">
-              {type.description}
+            <p className={`text-sm leading-relaxed ${type.id === selectedType ? 'opacity-80' : 'text-slate-500 dark:text-slate-400'}`}>
+              {type.desc}
             </p>
-            {selectedType === type.id && (
-              <div className="absolute top-4 right-4">
-                <div className={`w-2 h-2 rounded-full ${type.color.replace('text-', 'bg-')} animate-pulse`} />
-              </div>
-            )}
           </button>
         ))}
       </div>
 
-      <div className="bg-[#0A0A0A] border border-white/5 rounded-[40px] p-8 md:p-12 shadow-2xl">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          <div className="space-y-8">
-            <div className="space-y-3">
-              <label className="flex items-center gap-2 text-sm font-bold text-slate-400 uppercase tracking-widest">
-                <Target size={16} /> Target Role
-              </label>
-              <input 
-                type="text"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="w-full px-6 py-4 bg-black border border-white/10 rounded-2xl focus:border-blue-500 outline-none transition-all text-lg"
-                placeholder="e.g. Software Engineer"
-              />
-            </div>
+      {/* Configuration Panel */}
+      <div className="max-w-4xl mx-auto bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-[48px] p-10 md:p-14 shadow-2xl space-y-12 relative overflow-hidden">
+        {/* Abstract background blobs for premium feel */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
 
-            <div className="space-y-3">
-              <label className="flex items-center gap-2 text-sm font-bold text-slate-400 uppercase tracking-widest">
-                <Settings2 size={16} /> Experience Level
-              </label>
-              <div className="flex gap-2">
-                {['entry', 'mid', 'senior'].map((level) => (
-                  <button
-                    key={level}
-                    onClick={() => setExperienceLevel(level)}
-                    className={`flex-1 py-3 rounded-xl border text-xs font-bold uppercase tracking-tighter transition-all ${
-                      experienceLevel === level
-                        ? 'bg-white text-black border-white'
-                        : 'bg-transparent text-slate-500 border-white/10 hover:border-white/20'
-                    }`}
-                  >
-                    {level}
-                  </button>
-                ))}
-              </div>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 relative z-10">
+          {/* Target Role */}
+          <div className="space-y-4">
+            <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-500">
+              <Briefcase size={16} /> Target Role
+            </label>
+            <input 
+              type="text" 
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="w-full px-6 py-5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 transition-all font-bold text-slate-900 dark:text-white"
+              placeholder="e.g. Software Engineer"
+            />
           </div>
 
-          <div className="space-y-8">
-            <div className="space-y-3">
-              <label className="flex items-center gap-2 text-sm font-bold text-slate-400 uppercase tracking-widest">
-                <Clock size={16} /> Session Length
-              </label>
-              <div className="grid grid-cols-3 gap-4">
-                {QUESTION_COUNTS.map((count) => (
-                  <button
-                    key={count}
-                    onClick={() => setQuestionCount(count)}
-                    className={`py-6 rounded-3xl border-2 flex flex-col items-center justify-center transition-all ${
-                      questionCount === count
-                        ? 'border-blue-500 bg-blue-500/5 text-white'
-                        : 'border-white/5 bg-black/50 text-slate-500 hover:border-white/10'
-                    }`}
-                  >
-                    <span className="text-2xl font-black">{count}</span>
-                    <span className="text-[10px] uppercase font-bold tracking-widest mt-1">Questions</span>
-                  </button>
-                ))}
-              </div>
+          {/* Session Length */}
+          <div className="space-y-4">
+            <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-500">
+              <Clock size={16} /> Session Length
+            </label>
+            <div className="grid grid-cols-3 gap-3">
+              {[5, 10, 15].map((num) => (
+                <button
+                  key={num}
+                  onClick={() => setQuestionCount(num)}
+                  className={`py-4 rounded-2xl font-bold transition-all border-2 ${
+                    questionCount === num 
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20' 
+                      : 'bg-slate-50 dark:bg-white/5 text-slate-500 border-slate-200 dark:border-white/10 hover:border-blue-500/30'
+                  }`}
+                >
+                  <span className="text-xl block">{num}</span>
+                  <span className="text-[10px] uppercase tracking-tighter opacity-60">Questions</span>
+                </button>
+              ))}
             </div>
+          </div>
+        </div>
 
-            <div className="pt-4">
+        {/* Experience Level */}
+        <div className="space-y-4 relative z-10">
+          <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-500">
+            <Zap size={16} /> Experience Level
+          </label>
+          <div className="grid grid-cols-3 gap-4">
+            {['entry', 'mid', 'senior'].map((level) => (
               <button
-                onClick={handleStartInterview}
-                disabled={starting || !role}
-                className="w-full py-5 bg-linear-to-r from-blue-600 to-blue-500 text-white font-bold rounded-2xl flex items-center justify-center gap-3 hover:shadow-2xl hover:shadow-blue-500/20 hover:scale-[1.01] transition-all disabled:opacity-50 disabled:hover:scale-100 group"
+                key={level}
+                onClick={() => setExperienceLevel(level)}
+                className={`py-4 rounded-2xl font-bold uppercase tracking-widest text-xs transition-all border-2 ${
+                  experienceLevel === level 
+                    ? 'bg-slate-900 dark:bg-white text-white dark:text-black border-slate-900 dark:border-white' 
+                    : 'bg-slate-50 dark:bg-white/5 text-slate-500 border-slate-200 dark:border-white/10 hover:border-blue-500/30'
+                }`}
               >
-                {starting ? 'Initializing AI Engine...' : 'Launch Interview'}
-                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                {level}
               </button>
-            </div>
+            ))}
           </div>
         </div>
-      </div>
 
-      <div className="flex flex-wrap items-center justify-center gap-8 text-slate-600 text-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-          AI Model: Mistral & Groq
+        {/* Launch Button */}
+        <div className="pt-6 relative z-10">
+          <button
+            onClick={handleStart}
+            disabled={starting || !role.trim()}
+            className="w-full py-6 bg-blue-600 text-white text-xl font-black rounded-3xl flex items-center justify-center gap-3 hover:bg-blue-500 hover:scale-[1.01] active:scale-[0.99] transition-all shadow-2xl shadow-blue-600/30 disabled:opacity-50 disabled:grayscale group"
+          >
+            {starting ? (
+              <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent" />
+            ) : (
+              <>
+                Launch Interview <ArrowRight className="group-hover:translate-x-2 transition-transform" />
+              </>
+            )}
+          </button>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-          STAR Methodology
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
-          Real-time Feedback
+
+        {/* Footer Info */}
+        <div className="flex justify-center gap-8 pt-4">
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">AI Model: Mistral & Groq</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">STAR Methodology</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Real-time Feedback</span>
+          </div>
         </div>
       </div>
     </div>
