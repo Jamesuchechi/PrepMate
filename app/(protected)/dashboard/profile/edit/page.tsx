@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase';
-import { uploadAvatar } from '@/lib/storage';
+import { uploadAvatar, uploadResume } from '@/lib/storage';
 import { 
   User, 
   Camera, 
@@ -13,7 +13,11 @@ import {
   ChevronRight,
   ShieldCheck,
   AlertCircle,
-  ArrowLeft
+  ArrowLeft,
+  FileText,
+  Upload,
+  Loader2,
+  CheckCircle2
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -21,12 +25,15 @@ import Link from 'next/link';
 export default function EditProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [parsing, setParsing] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
   const [targetRole, setTargetRole] = useState('');
   const [experienceLevel, setExperienceLevel] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [resumeUrl, setResumeUrl] = useState<string | null>(null);
+  const [resumeData, setResumeData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [skillStats, setSkillStats] = useState({
@@ -36,7 +43,8 @@ export default function EditProfilePage() {
     relevance: 0
   });
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const resumeInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -58,6 +66,8 @@ export default function EditProfilePage() {
           setTargetRole(profileData.target_role || '');
           setExperienceLevel(profileData.experience_level || '');
           setAvatarUrl(profileData.avatar_url || null);
+          setResumeUrl(profileData.resume_url || null);
+          setResumeData(profileData.resume_data || null);
         }
 
         // Fetch Skill Averages
@@ -95,7 +105,6 @@ export default function EditProfilePage() {
       const url = await uploadAvatar(user.id, file);
       setAvatarUrl(url);
       
-      // Update profile with new avatar URL
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: url })
@@ -107,6 +116,66 @@ export default function EditProfilePage() {
       setError(err.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      setParsing(true);
+      setError(null);
+      setSuccess(null);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // 1. Upload to Storage
+      const url = await uploadResume(user.id, file);
+      setResumeUrl(url);
+
+      // 2. Parse with AI
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const parseResponse = await fetch('/api/parse-resume', {
+        method: 'POST',
+        body: formData
+      });
+
+      const parseResult = await parseResponse.json();
+      if (parseResult.error) throw new Error(parseResult.error);
+
+      setResumeData(parseResult.data);
+      
+      // Auto-update experience level if found
+      if (parseResult.data.experience_level) {
+        setExperienceLevel(parseResult.data.experience_level);
+      }
+      
+      if (parseResult.data.suggested_role && !targetRole) {
+        setTargetRole(parseResult.data.suggested_role);
+      }
+
+      // 3. Update profile
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ 
+          resume_url: url,
+          resume_data: parseResult.data,
+          experience_level: parseResult.data.experience_level || experienceLevel,
+          target_role: targetRole || parseResult.data.suggested_role
+        })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+      setSuccess('Resume analyzed successfully!');
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setParsing(false);
     }
   };
 
@@ -171,7 +240,7 @@ export default function EditProfilePage() {
               </div>
             )}
             <button 
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => avatarInputRef.current?.click()}
               className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <Camera className="text-white" size={24} />
@@ -179,7 +248,7 @@ export default function EditProfilePage() {
           </div>
           <input 
             type="file" 
-            ref={fileInputRef} 
+            ref={avatarInputRef} 
             onChange={handleAvatarUpload} 
             className="hidden" 
             accept="image/*" 
@@ -217,7 +286,7 @@ export default function EditProfilePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Settings Form */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-8">
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
             <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center gap-3">
               <ShieldCheck className="text-accent" size={20} />
@@ -283,6 +352,88 @@ export default function EditProfilePage() {
                 </button>
               </div>
             </form>
+          </div>
+
+          {/* Resume Upload Section */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center gap-3">
+              <FileText className="text-accent" size={20} />
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Resume & Personalization</h2>
+            </div>
+            
+            <div className="p-8 space-y-6">
+              {resumeUrl ? (
+                <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-accent">
+                        <FileText size={24} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-slate-900 dark:text-white">Active Resume</p>
+                        <p className="text-xs text-slate-500">Resume is being used for interview generation.</p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => resumeInputRef.current?.click()}
+                      className="text-xs font-bold uppercase tracking-widest text-slate-500 hover:text-accent transition-colors"
+                    >
+                      Replace File
+                    </button>
+                  </div>
+
+                  {resumeData?.skills && (
+                    <div className="space-y-3">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Detected Skills</p>
+                      <div className="flex flex-wrap gap-2">
+                        {resumeData.skills.map((skill: string) => (
+                          <span key={skill} className="px-3 py-1 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-medium border border-slate-100 dark:border-white/5">
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {resumeData?.projects && (
+                    <div className="space-y-3">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Key Projects</p>
+                      <ul className="space-y-2">
+                        {resumeData.projects.map((project: string) => (
+                          <li key={project} className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+                            <div className="w-1 h-1 rounded-full bg-accent" />
+                            {project}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div 
+                  onClick={() => resumeInputRef.current?.click()}
+                  className="group cursor-pointer p-10 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl text-center space-y-4 hover:border-accent/50 hover:bg-accent/5 transition-all"
+                >
+                  <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400 group-hover:text-accent transition-colors">
+                    {parsing ? <Loader2 className="animate-spin" size={32} /> : <Upload size={32} />}
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold text-slate-900 dark:text-white">{parsing ? 'Analyzing Resume...' : 'Upload your Resume'}</p>
+                    <p className="text-sm text-slate-500">PDF files only. Max 5MB.</p>
+                  </div>
+                  <p className="text-xs text-slate-400 italic">
+                    AI will automatically extract your experience to tailor your practice sessions.
+                  </p>
+                </div>
+              )}
+              <input 
+                type="file" 
+                ref={resumeInputRef} 
+                onChange={handleResumeUpload} 
+                className="hidden" 
+                accept=".pdf" 
+              />
+            </div>
           </div>
         </div>
 

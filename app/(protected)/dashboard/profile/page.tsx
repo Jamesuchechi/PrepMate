@@ -12,13 +12,19 @@ import {
   TrendingUp,
   ChevronRight,
   Edit3,
-  Award
+  Award,
+  FileText,
+  Flame,
+  Loader2,
+  X
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
 export default function ProfileReadonlyPage() {
   const [loading, setLoading] = useState(true);
+  const [roasting, setRoasting] = useState(false);
+  const [roastResult, setRoastResult] = useState<string | null>(null);
   const [profile, setProfile] = useState<any>(null);
   const [email, setEmail] = useState('');
   const [stats, setStats] = useState({
@@ -65,6 +71,30 @@ export default function ProfileReadonlyPage() {
     }
     fetchData();
   }, []);
+
+  const handleRoastResume = async () => {
+    if (!profile?.resume_data || roasting) return;
+    
+    setRoasting(true);
+    try {
+      const response = await fetch('/api/roast-resume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resume_data: profile.resume_data,
+          role: profile.target_role
+        })
+      });
+      
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+      setRoastResult(data.roast);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setRoasting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -170,6 +200,101 @@ export default function ProfileReadonlyPage() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Resume & Personalization */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-8 space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-accent/10 text-accent flex items-center justify-center">
+                  <FileText size={24} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">Resume & Experience</h3>
+                  <p className="text-sm text-slate-500">Upload your resume to tailor interviews to your background.</p>
+                </div>
+              </div>
+              {profile?.resume_url && (
+                <div className="px-3 py-1 bg-green-500/10 text-green-500 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-500/20">
+                  Analyzed
+                </div>
+              )}
+            </div>
+
+            {profile?.resume_url ? (
+              <div className="p-6 rounded-[32px] bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-slate-900 dark:text-white">
+                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center text-slate-400">
+                      <FileText size={20} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold truncate max-w-[200px]">Current Resume</p>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Last updated {new Date(profile.updated_at || profile.created_at).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Link 
+                      href="/dashboard/profile/edit"
+                      className="text-xs font-black uppercase tracking-widest text-accent hover:underline"
+                    >
+                      Update
+                    </Link>
+                    <span className="text-slate-700">•</span>
+                    <button 
+                      onClick={handleRoastResume}
+                      disabled={roasting}
+                      className="text-xs font-black uppercase tracking-widest text-orange-500 hover:underline flex items-center gap-1 disabled:opacity-50"
+                    >
+                      {roasting ? <Loader2 size={12} className="animate-spin" /> : '🔥 Roast'}
+                    </button>
+                  </div>
+                </div>
+
+                {roastResult && (
+                  <div className="p-6 rounded-2xl bg-orange-500/5 border border-orange-500/20 relative animate-in zoom-in duration-300">
+                    <button 
+                      onClick={() => setRoastResult(null)}
+                      className="absolute top-4 right-4 text-orange-500/50 hover:text-orange-500"
+                    >
+                      <X size={16} />
+                    </button>
+                    <div className="flex items-center gap-2 text-orange-500 mb-4">
+                      <Flame size={18} fill="currentColor" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">The Resume Roast</span>
+                    </div>
+                    <div className="prose prose-sm dark:prose-invert max-w-none text-orange-900/80 dark:text-orange-100/70 whitespace-pre-wrap italic">
+                      {roastResult}
+                    </div>
+                  </div>
+                )}
+
+                {profile.resume_data?.skills && (
+                  <div className="space-y-3">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Extracted Skills</p>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.resume_data.skills.slice(0, 8).map((skill: string) => (
+                        <span key={skill} className="px-3 py-1 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-medium border border-slate-100 dark:border-white/5">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="p-10 text-center border-2 border-dashed border-slate-200 dark:border-white/5 rounded-[40px] space-y-4">
+                <p className="text-sm text-slate-500 max-w-xs mx-auto font-medium">
+                  Upload your resume to enable <span className="text-slate-900 dark:text-white font-bold">Personalized Questioning</span> based on your actual work history.
+                </p>
+                <Link 
+                  href="/dashboard/profile/edit"
+                  className="inline-flex px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-black font-black rounded-2xl text-xs uppercase tracking-widest hover:scale-[1.02] transition-all shadow-xl"
+                >
+                  Upload Resume
+                </Link>
+              </div>
+            )}
           </div>
         </div>
 

@@ -1,0 +1,77 @@
+import { NextRequest, NextResponse } from 'next/server';
+// @ts-ignore
+import pdf from 'pdf-parse/lib/pdf-parse.js';
+
+export async function POST(req: NextRequest) {
+  try {
+    const formData = await req.formData();
+    const file = formData.get('file') as Blob;
+
+    if (!file) {
+      return NextResponse.json({ error: 'No resume file provided' }, { status: 400 });
+    }
+
+    // Convert Blob to Buffer for pdf-parse
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Extract text from PDF
+    const pdfData = await pdf(buffer);
+    const resumeText = pdfData.text;
+
+    if (!resumeText || resumeText.trim().length < 50) {
+      return NextResponse.json({ error: 'Could not extract sufficient text from the PDF.' }, { status: 400 });
+    }
+
+    // Send to Groq for structured parsing
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert HR and Technical Recruiter. Your task is to parse a resume and extract key information into a structured JSON format. Focus on technical skills, project names, and overall experience level.'
+          },
+          {
+            role: 'user',
+            content: `Please parse the following resume text and return ONLY a JSON object with the following structure:
+            {
+              "skills": ["skill1", "skill2"],
+              "experience_level": "entry/mid/senior",
+              "summary": "one sentence summary",
+              "projects": ["Project Name 1", "Project Name 2"],
+              "suggested_role": "Software Engineer"
+            }
+
+            Resume Text:
+            ${resumeText.substring(0, 4000)}` // Limit text to stay within tokens
+          }
+        ],
+        response_format: { type: 'json_object' }
+      }),
+    });
+
+    const aiData = await response.json();
+
+    if (!response.ok) {
+      console.error('Groq Analysis Error:', aiData);
+      return NextResponse.json({ error: 'AI failed to analyze the resume' }, { status: 500 });
+    }
+
+    const parsedData = JSON.parse(aiData.choices[0].message.content);
+
+    return NextResponse.json({ 
+      data: parsedData,
+      textPreview: resumeText.substring(0, 200) + '...' 
+    });
+
+  } catch (error: any) {
+    console.error('Resume Parser Error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

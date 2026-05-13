@@ -1,277 +1,109 @@
-# PrepMate — Build Phases & Task Tracker
+# PrepMate TODO
 
-### Nexa Hack 2026 | 72-Hour Sprint
+## ✅ PHASE 1 — Project Foundation (Completed)
+- [x] Initial Next.js setup (App Router, Tailwind CSS, TypeScript)
+- [x] Supabase integration (Auth, Database, Storage)
+- [x] Layout design (Mobile-first, JamesOS aesthetic)
 
-> This is our single source of truth. Every task lives here.
-> Mark done with [x]. No task is too small to track — small tasks missed = demo broken.
+## ✅ PHASE 2 — Core Interview Engine (Completed)
+- [x] Interview setup flow (Role, Experience, Count)
+- [x] AI Question Generation (Mistral/Groq integration)
+- [x] Real-time answer evaluation and feedback
+- [x] Session persistence and state management
 
----
+## ✅ PHASE 3 — Results & History (Completed)
+- [x] Session summary screen with animations
+- [x] Detailed history view with answer breakdown
+- [x] Performance metrics and improvement tips
 
-## 🔴 PHASE 0 — Project Setup (Day 1, Hour 0-2)
+## ✅ PHASE 4 — Dashboard & Stats (Completed)
+- [x] Dynamic dashboard with Recharts integration
+- [x] Skill matrix (Radar Chart) and Trend analysis
+- [x] Streak calculation and profile integration
 
-The foundation. Nothing else starts until this is done.
+## ✅ PHASE 5 — Navigation & Polish (Completed)
+- [x] Sidebar with active state detection
+- [x] Topbar with profile avatar and theme toggle
+- [x] Skeleton loaders and page transitions
+- [x] Confetti celebrations and score count-ups
 
-- [x] Create GitHub repository (`prepmate`)
-- [x] Initialize Next.js 14 project with TypeScript
-  ```bash
-  npx create-next-app@latest prepmate --typescript --tailwind --app
-  ```
-- [x] Install core dependencies
-  ```bash
-  npm install @supabase/supabase-js @supabase/ssr @GROQ-ai/sdk
-  npm install recharts lucide-react clsx tailwind-merge
-  ```
-- [x] Set up `.env.local` with all required keys
-  - `NEXT_PUBLIC_SUPABASE_URL`
-  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-  - `GROQ_API_KEY`
-  - `MISTRAL_API_KEY`
-- [x] Create `.env.example` (no real keys — safe to commit)
-- [x] Set up Supabase project (free tier)
-- [x] Run database migrations (schema from DOCUMENTATION.md)
-  - [x] `profiles` table
-  - [x] `sessions` table
-  - [x] `answers` table
-  - [x] Enable Row Level Security on all tables
-  - [x] Add RLS policies
-- [x] Connect repo to Vercel — auto-deploy on push to `main`
-- [x] Confirm live URL is working (even if just a placeholder page)
-- [x] Set environment variables in Vercel dashboard
-
-**Phase 0 checkpoint: Live URL exists. Database tables exist. Keys are wired.**
+## ✅ PHASE 6 — Advanced Design & Themes (Completed)
+- [x] Full Dark/Light mode support (next-themes + Tailwind v4)
+- [x] Readability audit and Light mode contrast fixes
+- [x] Mobile responsiveness and independent scrolling
+- [x] Settings page and Notifications center
 
 ---
 
-## 🟠 PHASE 1 — Authentication (Day 1, Hour 2-4)
+## ✅ PHASE 7 — Natural Interaction (Completed)
+*Turn PrepMate into a truly immersive coach.*
 
-Users must be able to sign up and log in before anything else matters.
+- [x] **Voice-to-Text (STT) Integration**
+  - [x] Add "Record Answer" button using Web Speech API or OpenAI Whisper
+  - [x] Implement real-time transcript preview in the answer box
+  - [x] Add "Auto-Stop" when user finishes speaking
+- [x] **AI Voice Coach (TTS)**
+  - [x] Integrate ElevenLabs for high-quality professional voices
+  - [x] Add "Speak Feedback" button on result cards
+  - [x] Implement "Interactive Mode" where the AI speaks the questions automatically
+- [x] **Natural Flow Enhancements**
+  - [x] Add "Thinking..." animations while AI evaluates answers
+  - [x] Implement "Interrupt Detection" (AI stops speaking if user starts)
 
-- [x] Create Supabase auth client utility (`lib/supabase.ts`)
-- [x] Create Next.js middleware for session refresh (`middleware.ts`)
-- [x] Build `/login` page (Integrated into Landing Page)
-- [x] Build `/signup` page (Integrated into Landing Page)
-- [x] Build `/onboarding` page
-  - [x] "What role are you targeting?" dropdown
-  - [x] "What's your experience level?" selector
-  - [x] Submit creates `profiles` record in Supabase
-  - [x] Redirect to `/dashboard`
-- [x] Add logout functionality (button in nav)
-- [x] Protect all `/dashboard`, `/interview`, `/history` routes — redirect to `/` if not authenticated
+## ✅ PHASE 8 — Personalization & Resumes (Completed)
+*Tailor every session to the user's specific background.*
 
-**Phase 1 checkpoint: Can sign up, log in, complete onboarding, and log out.**
+- [x] **Resume Engine**
+  - [x] Create Resume Upload component (PDF/DOCX)
+  - [x] Implement AI parsing to extract projects, skills, and experience
+  - [x] Store parsed resume data in `profiles` table
+- [x] **Customized Question Logic**
+  - [x] Update AI prompts to ask questions specifically about the user's resume projects
+  - [x] "Resume Roast": Add a specific notification/report about resume weak points
+- [x] **Coach Personalities**
+  - [x] Create "The Mentor" (Soft, encouraging)
+  - [x] Create "The Technical Lead" (Strict, detail-oriented)
+  - [x] Create "The HR Manager" (Focus on cultural fit)
 
----
+## 🟢 PHASE 9 — Monetization & Pro Features
+*The path to a sustainable product.*
 
-## 🟡 PHASE 2 — AI Engine (Day 1, Hour 4-7)
+- [ ] **Stripe SaaS Integration**
+  - [ ] Create "Billing" page in settings
+  - [ ] Implement Free vs. Pro tier logic (e.g. 3 free sessions, then Pro)
+  - [ ] "Pro" badge in Topbar and Profile
+- [ ] **Shareable Performance Reports**
+  - [ ] Generate unique public URLs for session results
+  - [ ] Create a "Recruiter View" optimized for external reading
+  - [ ] PDF Export for session summaries
+- [ ] **Advanced Analytics**
+  - [ ] Comparison vs. "Average User" for specific roles
+  - [ ] Detailed "Grammar & Pacing" analysis in feedback
 
-The brain. Build and test this before touching the interview UI.
+## 🔴 PHASE 10 — Company Battle Paths
+*The final frontier: Land the dream job.*
 
-- [x] Create GROQ client utility (`lib/agentic-ai.ts`)
-- [x] Build `POST /api/generate-question` route
-  - [x] Accept `role`, `experience_level`, `interview_type`, `asked_questions[]`
-  - [x] Construct Agentic AI prompt (see DOCUMENTATION.md)
-  - [x] Return `{ question: string }`
-  - [x] Handle Agentic AI errors gracefully (return 500 with message)
-- [x] Build `POST /api/evaluate-answer` route
-  - [x] Accept `question`, `answer`, `role`, `experience_level`, `interview_type`
-  - [x] Construct Agentic AI prompt (see DOCUMENTATION.md)
-  - [x] Return structured evaluation (scores, feedback, tips)
-  - [x] Parse JSON response from Agentic Ai (strip any accidental markdown fences)
-  - [x] Return structured scores + feedback + improvement_tip
-  - [x] Handle parse errors (if Agentic Ai returns malformed JSON, retry once)
-- [x] **TEST BOTH ENDPOINTS with Postman or curl before moving on**
-  - [x] Test generate-question for 3 different roles
-  - [x] Test evaluate-answer with a weak answer and a strong answer — confirm scores differ meaningfully
-  - [x] Test evaluate-answer with an empty string — confirm graceful error
+- [ ] **The "Google/FAANG" Track**
+  - [ ] Specialized question bank for top-tier tech companies
+  - [ ] Focus on specific "Leadership Principles" (Amazon style)
+- [ ] **Interview Readiness Certificate**
+  - [ ] Generate a "Ready for Interview" certificate after hitting 90% average
+- [ ] **Interview Warm-up (PWA)**
+  - [ ] Add offline-first "Flashcards" for quick technical review
 
-**Phase 2 checkpoint: Both API routes return correct data. Tested. Reliable.**
+## 🟡 PHASE 11 — The Career Suite (AI Resume Builder)
+*Go from practiced candidate to hired professional.*
 
----
-
-## 🟢 PHASE 3 — Core Interview Flow (Day 1, Hour 7-12)
-
-The main event. This is what judges will actually use.
-
-- [x] Build `/interview/setup` page
-  - [x] Interview Type selector: Behavioral | Technical | HR (styled cards, not a dropdown)
-  - [x] Role input (pre-filled from profile, editable)
-  - [x] Experience level (pre-filled from profile, editable)
-  - [x] Number of questions: 5 | 10 | 15 (button group)
-  - [x] "Start Interview" button → creates session record in Supabase → navigates to `/interview/session/[id]`
-- [x] Build `/interview/session/[id]` page
-  - [x] On mount: fetch session details, generate first question via API
-  - [x] Display question in a prominent card
-  - [x] Large textarea for answer (min-height: 200px)
-  - [x] Word count indicator below textarea (target: 150-300 words)
-  - [x] "Submit Answer" button
-    - [x] Loading state while Agentic Ai evaluates (spinner + "Analyzing your answer...")
-    - [x] On response: animate scores in one by one (use CSS transitions)
-    - [x] Show Clarity, Confidence, Structure, Relevance scores as progress bars
-    - [x] Show Overall score large and centered
-    - [x] Show feedback paragraph below scores
-    - [x] Show improvement tip in a distinct callout box
-    - [x] Save answer + scores to `answers` table in Supabase
-    - [x] Update session's `total_score` (running average)
-  - [x] "Next Question" button (appears after feedback is shown)
-    - [x] Generates next question (passes previously asked questions to avoid repeats)
-    - [x] Increments question counter
-    - [x] Clears textarea and scores
-  - [x] Progress indicator: "Question 3 of 10"
-  - [x] When final question is answered:
-    - [x] Mark session as `completed: true` in Supabase
-    - [x] Show session summary screen (overall score, best answer, biggest weakness)
-    - [x] "View Dashboard" and "Practice Again" buttons
-- [x] Handle edge cases:
-  - [x] User refreshes mid-session → reload state from Supabase
-  - [x] Agentic Ai API fails → show retry button, don't lose the answer
-
-**Phase 3 checkpoint: Full interview can be completed end-to-end. Data saves correctly.**
-
----
-
-## 🔵 PHASE 4 — Dashboard (Day 2, Hour 0-4)
-
-This is what makes PrepMate a _product_, not a demo. The judges need to see progress tracking.
-
-- [x] Build `/dashboard` page
-  - [x] Header: "Welcome back, [name]" + current streak counter
-  - [x] "Start New Interview" CTA button (prominent, above the fold)
-  - [x] Create authenticated shell with Sidebar and Topbar
-  - [x] Fetch all data in a single Supabase query on page load (join sessions + answers)
-- [x] Handle empty state (new user with no sessions) — show encouraging onboarding CTA
-
-**Phase 4 checkpoint: Dashboard shows real data. Charts render. Empty state looks good.**
-
----
-
-## 🟣 PHASE 5 — Session History (Day 2, Hour 4-6)
-
-Judges will want to drill into past sessions to validate the product depth.
-
-- [x] Build `/history` page
-  - [x] List all sessions, newest first
-  - [x] Each session row: date, role, interview type, score badge, expand button
-  - [x] Expandable section per session: shows all Q&A pairs with scores and feedback
-  - [x] Filter by interview type (All | Behavioral | Technical | HR)
-  - [x] Filter by date range (This Week | This Month | All Time)
-- [x] Build `/history/[session_id]` page (full session review)
-  - [x] Session summary at top
-  - [x] Each answer displayed as a card:
-    - [x] Question
-    - [x] User's answer
-    - [x] Score breakdown (4 bars)
-    - [x] Feedback
-    - [x] Improvement tip
-
-**Phase 5 checkpoint: All past sessions browsable. Drill-down works.**
-
----
-
-## ⚪ PHASE 6 — Polish & Design (Day 2, Hour 6-12)
-
-This is where good becomes great. Judges score on Design & Aesthetics. Don't skip this.
-
-- [x] **Global Design System**
-  - [x] Define color palette in `tailwind.config.ts` (dark navy + electric accent)
-  - [x] Typography: Import a distinctive font pair from Google Fonts
-  - [x] Consistent border radius, shadow, and spacing tokens
-
-- [x] **Navigation**
-  - [x] Clean top nav with logo, links, and user avatar dropdown
-  - [x] Mobile hamburger menu
-  - [x] Active link highlighting
-- [x] **Loading States**
-  - [x] Skeleton loaders for dashboard charts while data fetches
-  - [x] Spinner + message during AI evaluation
-  - [x] Optimistic UI where possible
-- [x] **Score Animations**
-  - [x] Scores count up from 0 to final value (CSS counter animation)
-  - [x] Progress bars animate width on reveal
-  - [x] Stagger the four dimension scores (50ms delay each)
-- [x] **Micro-interactions**
-  - [x] Button hover states
-  - [x] Card hover lift effect
-  - [x] Smooth page transitions
-- [x] **Mobile Responsiveness**
-  - [x] Test on 375px (iPhone SE)
-  - [x] Test on 768px (tablet)
-  - [x] Fix any layout breaks
-- [x] **Dark/Light mode** (if time permits — dark looks better in demos)
-
-**Phase 6 checkpoint: Product looks like something a real company shipped.**
-
----
-
-## 🔴 PHASE 7 — Pre-Submission QA (Day 3, Hour 0-6)
-
-Break it before the judges do.
-
-- [ ] **Full End-to-End Test**
-  - [ ] Sign up as a brand new user
-  - [ ] Complete onboarding
-  - [ ] Run a full 5-question behavioral interview
-  - [ ] Check all 5 answers saved correctly in Supabase
-  - [ ] Check dashboard shows correct scores and charts
-  - [ ] View session in history
-  - [ ] Log out and log back in
-- [ ] **Edge Case Tests**
-  - [ ] Submit a 1-word answer — does Agentic Ai still return valid JSON?
-  - [ ] Submit a very long answer (500+ words) — does it work?
-  - [ ] Refresh mid-interview — does state restore?
-  - [ ] Open on mobile — is anything broken?
-- [ ] **Performance Check**
-  - [ ] Lighthouse score > 80 on performance
-  - [ ] No console errors in production
-- [ ] **Content Review**
-  - [ ] Check all copy for typos
-  - [ ] Ensure all empty states have helpful messages
-  - [ ] Ensure error messages are human-readable
-
-**Phase 7 checkpoint: Zero known bugs. Product is stable.**
-
----
-
-## 🎬 PHASE 8 — Submission (Day 3, Hour 6-11)
-
-Execute like this is a product launch. Because it is.
-
-- [ ] **Demo Video** (target: 2-3 minutes)
-  - [ ] Script it before recording — no rambling
-  - [ ] Show: landing page → sign up → setup interview → complete 3 questions → dashboard with scores
-  - [ ] Narrate the problem first (30 seconds), then the solution
-  - [ ] Record with OBS or Loom
-  - [ ] Upload to YouTube (unlisted) or Loom
-- [ ] **Final README review**
-  - [ ] Confirm all install instructions are accurate
-  - [ ] Confirm env variable names match actual `.env.local`
-  - [ ] Add live demo URL
-  - [ ] Add demo video link
-- [ ] **Devpost Submission**
-  - [ ] Project name: PrepMate
-  - [ ] Tagline: "AI-Powered Interview Coach for Students"
-  - [ ] Description: paste from README
-  - [ ] Add demo video URL
-  - [ ] Add GitHub repo link
-  - [ ] Add live demo URL
-  - [ ] Select categories: Education & Learning Platforms, Artificial Intelligence
-  - [ ] Upload 3-4 screenshots (dashboard, interview screen, feedback screen, landing page)
-  - [ ] Submit **at least 1 hour before deadline** — never in the last 5 minutes
-
-**⏰ HARD DEADLINE: May 14, 2026 @ 11:00pm GMT+2**
-**Our target submission: May 14 @ 9:00pm GMT+2 — 2-hour buffer**
-
----
-
-## 🏆 WIN CONDITIONS
-
-We win if we nail all of these:
-
-1. **The demo video is compelling** — judges watch it and immediately understand the value
-2. **The live product works** — judges can sign up and run an interview without hitting a bug
-3. **The design looks professional** — it doesn't look like it was built in 3 days
-4. **The AI feedback is genuinely good** — judges test it and the feedback surprises them with quality
-5. **The documentation is thorough** — shows we think like engineers, not just hackers
-
----
-
-_Stay focused. Ship the core. Polish the visible. Win._
+- [ ] **AI-Powered Resume Architect**
+  - [ ] **STAR Bullet Refiner**: Auto-convert raw points into high-impact impact-driven metrics
+  - [ ] **Resume-to-Interview Bridge**: Auto-suggest interview questions based on newly added resume projects
+  - [ ] **Skill Validation**: "Verified by PrepMate" badges for skills demonstrated in top-scoring sessions
+- [ ] **Template Gallery**
+  - [ ] **The "Silicon Valley"**: Minimalist, high-readability tech template
+  - [ ] **The "Executive"**: Bold, authoritative design for senior roles
+  - [ ] **The "Creative"**: Dynamic, multi-column layout for designers/marketers
+  - [ ] **The "Academic"**: Detailed, CV-style layout for research/education
+- [ ] **Export & Optimization**
+  - [ ] **Real-time PDF Generator**: High-fidelity export with CSS-to-PDF logic
+  - [ ] **ATS Compatibility Scanner**: Real-time "Parseability Score"
+  - [ ] **Job Description Tailoring**: Paste a job URL to auto-reorder bullets for maximum relevance

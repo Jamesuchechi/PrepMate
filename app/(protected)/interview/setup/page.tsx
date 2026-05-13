@@ -1,237 +1,235 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase';
 import { 
-  Users, 
-  Code, 
-  UserCheck, 
-  ArrowRight, 
+  Briefcase, 
+  GraduationCap, 
   Clock, 
+  Play, 
+  ChevronRight,
   Target,
-  Settings2,
-  Briefcase,
+  Shield,
   Zap,
-  Sparkles,
-  Code2
+  User,
+  AlertCircle
 } from 'lucide-react';
-import Link from 'next/link';
+
+const ROLES = [
+  "Software Engineer",
+  "Product Manager",
+  "Data Scientist",
+  "Frontend Developer",
+  "Backend Developer",
+  "Full Stack Developer",
+  "UI/UX Designer",
+  "Marketing Manager",
+  "Sales Representative",
+  "Customer Success"
+];
+
+const COACHES = [
+  {
+    id: 'mentor',
+    name: 'The Mentor',
+    description: 'Encouraging and growth-oriented. Perfect for building confidence.',
+    icon: GraduationCap,
+    color: 'bg-green-500/10 text-green-500'
+  },
+  {
+    id: 'drill_sergeant',
+    name: 'The Drill Sergeant',
+    description: 'Strict and high-pressure. Focuses on speed and precision.',
+    icon: Shield,
+    color: 'bg-red-500/10 text-red-500'
+  },
+  {
+    id: 'tech_lead',
+    name: 'The Tech Lead',
+    description: 'Detail-oriented and deep-diving. Focuses on technical mastery.',
+    icon: Zap,
+    color: 'bg-blue-500/10 text-blue-500'
+  }
+];
 
 export default function InterviewSetupPage() {
-  const [loading, setLoading] = useState(true);
-  const [starting, setStarting] = useState(false);
-  const [profile, setProfile] = useState<any>(null);
-  
-  const [selectedType, setSelectedType] = useState('behavioral');
-  const [role, setRole] = useState('');
-  const [experienceLevel, setExperienceLevel] = useState('');
-  const [questionCount, setQuestionCount] = useState(5);
-
   const router = useRouter();
   const supabase = createClient();
 
-  useEffect(() => {
-    async function getProfile() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        if (data) {
-          setProfile(data);
-          setRole(data.target_role || '');
-          setExperienceLevel(data.experience_level || 'mid');
-        }
-      }
-      setLoading(false);
-    }
-    getProfile();
-  }, []);
+  const [role, setRole] = useState(ROLES[0]);
+  const [experience, setExperience] = useState('entry');
+  const [type, setType] = useState('behavioral');
+  const [count, setCount] = useState(5);
+  const [coach, setCoach] = useState('mentor');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleStart = async () => {
-    setStarting(true);
+    setLoading(true);
+    setError(null);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data: session, error } = await supabase
+      const { data, error: sessionError } = await supabase
         .from('sessions')
         .insert({
           user_id: user.id,
-          interview_type: selectedType,
           role: role,
-          experience_level: experienceLevel,
-          question_count: questionCount,
+          experience_level: experience,
+          interview_type: type,
+          question_count: count,
+          coach_personality: coach,
           completed: false,
           total_score: 0
         })
         .select()
         .single();
 
-      if (error) throw error;
-      router.push(`/interview/session/${session.id}`);
-    } catch (err) {
-      console.error(err);
-      setStarting(false);
+      if (sessionError) throw sessionError;
+      router.push(`/interview/session/${data.id}`);
+    } catch (err: any) {
+      setError(err.message);
+      setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-accent"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-4xl mx-auto space-y-12 pb-20">
-      {/* Header Section */}
-      <div className="text-center space-y-4 max-w-2xl mx-auto">
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/10 text-blue-600 rounded-full border border-blue-500/20 animate-fade-in">
-          <Sparkles size={16} />
-          <span className="text-xs font-black uppercase tracking-widest">Setup Phase</span>
-        </div>
-        <h1 className="text-5xl font-black tracking-tight text-slate-900 dark:text-white">
-          Configure Your <span className="text-blue-600">Session</span>
-        </h1>
-        <p className="text-slate-500 dark:text-slate-400 text-lg font-medium leading-relaxed">
-          Customize your AI-powered interview to focus on what matters most for your career.
-        </p>
+    <div className="max-w-4xl mx-auto space-y-10 pb-20">
+      <div className="space-y-2">
+        <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Setup Your Session</h1>
+        <p className="text-slate-500 text-lg font-medium">Customize your practice experience for maximum growth.</p>
       </div>
 
-      {/* Interview Types */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-        {[
-          { id: 'behavioral', title: 'Behavioral', desc: 'STAR method, soft skills, and past experiences.', icon: Users },
-          { id: 'technical', title: 'Technical', desc: 'Core concepts, problem-solving, and role-specific skills.', icon: Code2 },
-          { id: 'cultural', title: 'HR / Cultural', desc: 'Culture fit, expectations, and values alignment.', icon: UserCheck },
-        ].map((type) => (
-          <button
-            key={type.id}
-            onClick={() => setSelectedType(type.id)}
-            className={`p-8 rounded-[40px] text-left transition-all duration-500 relative overflow-hidden group border-2 ${
-              type.id === selectedType 
-                ? 'bg-slate-900 dark:bg-white text-white dark:text-black border-slate-900 dark:border-white shadow-2xl scale-[1.02]' 
-                : 'bg-white dark:bg-slate-900/50 text-slate-900 dark:text-white border-slate-100 dark:border-white/5 hover:border-blue-500/30'
-            }`}
-          >
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 transition-colors ${
-              type.id === selectedType ? 'bg-blue-500 text-white' : 'bg-blue-500/10 text-blue-600'
-            }`}>
-              <type.icon size={24} />
-            </div>
-            <h3 className="text-xl font-bold mb-2">{type.title}</h3>
-            <p className={`text-sm leading-relaxed ${type.id === selectedType ? 'opacity-80' : 'text-slate-500 dark:text-slate-400'}`}>
-              {type.desc}
-            </p>
-          </button>
-        ))}
-      </div>
-
-      {/* Configuration Panel */}
-      <div className="max-w-4xl mx-auto bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-[48px] p-10 md:p-14 shadow-2xl space-y-12 relative overflow-hidden">
-        {/* Abstract background blobs for premium feel */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 relative z-10">
-          {/* Target Role */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="space-y-8">
+          {/* Role Selection */}
           <div className="space-y-4">
-            <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-500">
-              <Briefcase size={16} /> Target Role
-            </label>
-            <input 
-              type="text" 
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full px-6 py-5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 transition-all font-bold text-slate-900 dark:text-white"
-              placeholder="e.g. Software Engineer"
-            />
+            <label className="text-sm font-black uppercase tracking-widest text-slate-400">Target Role</label>
+            <div className="grid grid-cols-1 gap-2">
+              <select 
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="w-full p-4 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-white/5 rounded-2xl outline-none focus:border-accent transition-all text-slate-700 dark:text-slate-200 font-bold"
+              >
+                {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
           </div>
 
-          {/* Session Length */}
+          {/* Level & Type */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4">
+              <label className="text-sm font-black uppercase tracking-widest text-slate-400">Experience</label>
+              <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl">
+                {['entry', 'mid', 'senior'].map(l => (
+                  <button
+                    key={l}
+                    onClick={() => setExperience(l)}
+                    className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${experience === l ? 'bg-white dark:bg-slate-800 text-accent shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-4">
+              <label className="text-sm font-black uppercase tracking-widest text-slate-400">Type</label>
+              <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl">
+                {['behavioral', 'technical'].map(t => (
+                  <button
+                    key={t}
+                    onClick={() => setType(t)}
+                    className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${type === t ? 'bg-white dark:bg-slate-800 text-accent shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Question Count */}
           <div className="space-y-4">
-            <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-500">
-              <Clock size={16} /> Session Length
-            </label>
-            <div className="grid grid-cols-3 gap-3">
-              {[5, 10, 15].map((num) => (
+            <div className="flex justify-between">
+              <label className="text-sm font-black uppercase tracking-widest text-slate-400">Question Count</label>
+              <span className="text-sm font-black text-accent">{count} Questions</span>
+            </div>
+            <input 
+              type="range" 
+              min="3" 
+              max="10" 
+              value={count}
+              onChange={(e) => setCount(parseInt(e.target.value))}
+              className="w-full h-2 bg-slate-100 dark:bg-white/5 rounded-lg appearance-none cursor-pointer accent-accent"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-8">
+          {/* Coach Selection */}
+          <div className="space-y-4">
+            <label className="text-sm font-black uppercase tracking-widest text-slate-400">Choose Your Coach</label>
+            <div className="space-y-3">
+              {COACHES.map(c => (
                 <button
-                  key={num}
-                  onClick={() => setQuestionCount(num)}
-                  className={`py-4 rounded-2xl font-bold transition-all border-2 ${
-                    questionCount === num 
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20' 
-                      : 'bg-slate-50 dark:bg-white/5 text-slate-500 border-slate-200 dark:border-white/10 hover:border-blue-500/30'
-                  }`}
+                  key={c.id}
+                  onClick={() => setCoach(c.id)}
+                  className={`w-full p-4 rounded-2xl border-2 transition-all flex items-start gap-4 text-left group ${coach === c.id ? 'border-accent bg-accent/5' : 'border-slate-100 dark:border-white/5 bg-white dark:bg-slate-900 hover:border-slate-200 dark:hover:border-white/10'}`}
                 >
-                  <span className="text-xl block">{num}</span>
-                  <span className="text-[10px] uppercase tracking-tighter opacity-60">Questions</span>
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 ${c.color}`}>
+                    <c.icon size={24} />
+                  </div>
+                  <div className="space-y-1">
+                    <p className={`font-bold transition-colors ${coach === c.id ? 'text-accent' : 'text-slate-900 dark:text-white'}`}>{c.name}</p>
+                    <p className="text-xs text-slate-500 leading-relaxed">{c.description}</p>
+                  </div>
                 </button>
               ))}
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Experience Level */}
-        <div className="space-y-4 relative z-10">
-          <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-500">
-            <Zap size={16} /> Experience Level
-          </label>
-          <div className="grid grid-cols-3 gap-4">
-            {['entry', 'mid', 'senior'].map((level) => (
-              <button
-                key={level}
-                onClick={() => setExperienceLevel(level)}
-                className={`py-4 rounded-2xl font-bold uppercase tracking-widest text-xs transition-all border-2 ${
-                  experienceLevel === level 
-                    ? 'bg-slate-900 dark:bg-white text-white dark:text-black border-slate-900 dark:border-white' 
-                    : 'bg-slate-50 dark:bg-white/5 text-slate-500 border-slate-200 dark:border-white/10 hover:border-blue-500/30'
-                }`}
-              >
-                {level}
-              </button>
-            ))}
+      <div className="pt-10 flex flex-col items-center space-y-6">
+        {error && (
+          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-500 text-sm">
+            <AlertCircle size={18} />
+            {error}
           </div>
-        </div>
-
-        {/* Launch Button */}
-        <div className="pt-6 relative z-10">
-          <button
-            onClick={handleStart}
-            disabled={starting || !role.trim()}
-            className="w-full py-6 bg-blue-600 text-white text-xl font-black rounded-3xl flex items-center justify-center gap-3 hover:bg-blue-500 hover:scale-[1.01] active:scale-[0.99] transition-all shadow-2xl shadow-blue-600/30 disabled:opacity-50 disabled:grayscale group"
-          >
-            {starting ? (
-              <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent" />
-            ) : (
-              <>
-                Launch Interview <ArrowRight className="group-hover:translate-x-2 transition-transform" />
-              </>
-            )}
-          </button>
-        </div>
-
-        {/* Footer Info */}
-        <div className="flex justify-center gap-8 pt-4">
-          <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">AI Model: Mistral & Groq</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">STAR Methodology</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Real-time Feedback</span>
-          </div>
-        </div>
+        )}
+        
+        <button
+          onClick={handleStart}
+          disabled={loading}
+          className="group relative px-12 py-5 bg-slate-900 dark:bg-white text-white dark:text-black font-black rounded-3xl text-lg uppercase tracking-[0.2em] flex items-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 shadow-2xl overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-accent/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+          <span className="relative z-10 flex items-center gap-3">
+            {loading ? <Loader2 className="animate-spin" /> : <Play fill="currentColor" size={20} />}
+            {loading ? 'Preparing...' : 'Start Session'}
+            {!loading && <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />}
+          </span>
+        </button>
+        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">
+          Estimated duration: {count * 3} mins
+        </p>
       </div>
     </div>
+  );
+}
+
+function Loader2({ className }: { className?: string }) {
+  return (
+    <svg 
+      className={`animate-spin ${className}`} 
+      xmlns="http://www.w3.org/2000/svg" 
+      fill="none" 
+      viewBox="0 0 24 24"
+    >
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
   );
 }

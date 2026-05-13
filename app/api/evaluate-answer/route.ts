@@ -3,16 +3,25 @@ import { generateChatCompletion } from '@/lib/agentic-ai';
 
 export async function POST(request: Request) {
   try {
-    const { question, answer, role, experience_level, interview_type } = await request.json();
+    const { question, answer, role, experience_level, interview_type, coach_personality } = await request.json();
 
     if (!question || !answer || !role || !experience_level || !interview_type) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const prompt = `
-You are an expert interview coach evaluating a candidate's answer.
+    // Personality configuration
+    const personalities: Record<string, string> = {
+      mentor: "You are 'The Mentor'. You are encouraging, empathetic, and focus on growth. Your feedback should be supportive, highlight what they did well, and gently point out areas for growth.",
+      drill_sergeant: "You are 'The Drill Sergeant'. You are strict, direct, and focus on high-pressure performance. Your feedback should be blunt, highlight every mistake, and push them to be more precise and confident. Do not sugarcoat.",
+      tech_lead: "You are 'The Tech Lead'. You are detail-oriented, skeptical, and focus on technical mastery. Your feedback should be analytical, focus on the depth of the answer, and challenge their technical assumptions."
+    };
 
-Role: ${role}
+    const coachPrompt = personalities[coach_personality] || personalities.mentor;
+
+    const prompt = `
+${coachPrompt}
+You are evaluating a candidate's answer for a ${role} position.
+
 Experience Level: ${experience_level}
 Interview Type: ${interview_type}
 Question: ${question}
@@ -33,8 +42,8 @@ Return ONLY valid JSON in this exact format:
     "relevance": number,
     "overall": number
   },
-  "feedback": "2-4 sentence detailed feedback string",
-  "improvement_tip": "One specific, actionable improvement"
+  "feedback": "2-4 sentence detailed feedback string matching your persona's tone",
+  "improvement_tip": "One specific, actionable improvement matching your persona's tone"
 }
 `.trim();
 

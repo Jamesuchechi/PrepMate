@@ -14,7 +14,9 @@ import {
   AlertCircle,
   Loader2,
   ChevronRight,
-  Home
+  Home,
+  Mic,
+  MicOff
 } from 'lucide-react';
 import Link from 'next/link';
 import CountUp from '@/components/animations/CountUp';
@@ -36,12 +38,91 @@ export default function InterviewSessionPage() {
   const [evaluation, setEvaluation] = useState<any>(null);
   const [completed, setCompleted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resumeData, setResumeData] = useState<any>(null);
+
+  // Voice Recording State (Whisper Upgrade)
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     fetchSessionData();
   }, [sessionId]);
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        handleTranscription(audioBlob);
+        
+        // Stop all tracks to release the microphone
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error("Error accessing microphone:", err);
+      setError("Could not access microphone. Please check permissions.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const handleTranscription = async (blob: Blob) => {
+    setIsTranscribing(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', blob);
+
+      const response = await fetch('/api/whisper', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+
+      if (data.text) {
+        setUserAnswer(prev => {
+          const separator = prev.length > 0 && !prev.endsWith(' ') ? ' ' : '';
+          return prev + separator + data.text;
+        });
+      }
+    } catch (err: any) {
+      console.error("Transcription error:", err);
+      setError("Failed to transcribe audio. Please try again.");
+    } finally {
+      setIsTranscribing(false);
+    }
+  };
+
+  const toggleRecording = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
 
   useEffect(() => {
     if (completed) {
@@ -83,6 +164,17 @@ export default function InterviewSessionPage() {
         setCompleted(true);
       }
 
+      // Fetch Resume Data from Profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('resume_data')
+        .eq('id', sessionData.user_id)
+        .single();
+      
+      if (profileData?.resume_data) {
+        setResumeData(profileData.resume_data);
+      }
+
       const { data: answersData, error: answersError } = await supabase
         .from('answers')
         .select('*')
@@ -94,7 +186,7 @@ export default function InterviewSessionPage() {
 
       if (!sessionData.completed) {
         if (answersData && answersData.length < sessionData.question_count) {
-          generateNextQuestion(answersData);
+          generateNextQuestion(answersData, profileData?.resume_data);
         } else if (answersData && answersData.length >= sessionData.question_count) {
           finishSession();
         }
@@ -106,7 +198,25 @@ export default function InterviewSessionPage() {
     }
   };
 
-  const generateNextQuestion = async (existingAnswers: any[]) => {
+  const speakText = (text: string) => {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.95; // Slightly slower for professional feel
+      utterance.pitch = 1.0;
+      
+      // Try to find a professional sounding voice
+      const voices = window.speechSynthesis.getVoices();
+      const preferredVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Samantha'));
+      if (preferredVoice) utterance.voice = preferredVoice;
+
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  const generateNextQuestion = async (existingAnswers: any[], rData?: any) => {
     setGenerating(true);
     setEvaluation(null);
     setUserAnswer('');
@@ -121,13 +231,17 @@ export default function InterviewSessionPage() {
           role: session?.role || 'Software Engineer',
           experience_level: session?.experience_level || 'entry',
           interview_type: session?.interview_type || 'behavioral',
-          asked_questions: askedQuestions
+          asked_questions: askedQuestions,
+          resume_data: rData || resumeData
         })
       });
 
       const data = await response.json();
       if (data.error) throw new Error(data.error);
       setCurrentQuestion(data.question);
+      
+      // Speak the question
+      speakText(data.question);
     } catch (err: any) {
       setError("Failed to generate question. Please try again.");
     } finally {
@@ -140,6 +254,11 @@ export default function InterviewSessionPage() {
     setEvaluating(true);
     setError(null);
 
+    // Stop recording if active
+    if (isRecording) {
+      stopRecording();
+    }
+
     try {
       const response = await fetch('/api/evaluate-answer', {
         method: 'POST',
@@ -149,15 +268,15 @@ export default function InterviewSessionPage() {
           answer: userAnswer,
           role: session.role,
           experience_level: session.experience_level,
-          interview_type: session.interview_type
+          interview_type: session.interview_type,
+          coach_personality: session.coach_personality
         })
       });
 
-      const evalData = await response.json();
-      if (evalData.error) throw new Error(evalData.error);
-      
-      setEvaluation(evalData);
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
 
+      // Save to Supabase
       const { data: newAnswer, error: saveError } = await supabase
         .from('answers')
         .insert({
@@ -165,56 +284,48 @@ export default function InterviewSessionPage() {
           user_id: session.user_id,
           question: currentQuestion,
           answer: userAnswer,
-          score_clarity: evalData.scores.clarity,
-          score_confidence: evalData.scores.confidence,
-          score_structure: evalData.scores.structure,
-          score_relevance: evalData.scores.relevance,
-          overall_score: evalData.scores.overall,
-          feedback: evalData.feedback,
-          improvement_tip: evalData.improvement_tip
+          score_clarity: data.scores.clarity,
+          score_confidence: data.scores.confidence,
+          score_structure: data.scores.structure,
+          score_relevance: data.scores.relevance,
+          overall_score: data.overall_score,
+          feedback: data.feedback,
+          improvement_tip: data.improvement_tip
         })
         .select()
         .single();
 
       if (saveError) throw saveError;
 
-      const newAnswersList = [...answers, newAnswer];
-      setAnswers(newAnswersList);
+      setEvaluation(data);
+      setAnswers([...answers, newAnswer]);
 
-      const avgScore = newAnswersList.reduce((acc, curr) => acc + curr.overall_score, 0) / newAnswersList.length;
-      
+      // Update session total score
+      const newTotalScore = [...answers, newAnswer].reduce((acc, curr) => acc + curr.overall_score, 0) / [...answers, newAnswer].length;
       await supabase
         .from('sessions')
-        .update({ total_score: avgScore })
+        .update({ total_score: newTotalScore })
         .eq('id', sessionId);
 
     } catch (err: any) {
-      setError(err.message || "Evaluation failed. Please try again.");
+      setError(err.message);
     } finally {
       setEvaluating(false);
     }
   };
 
   const finishSession = async () => {
-    setLoading(true);
-    try {
-      await supabase
-        .from('sessions')
-        .update({ completed: true })
-        .eq('id', sessionId);
-      setCompleted(true);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+    await supabase
+      .from('sessions')
+      .update({ completed: true })
+      .eq('id', sessionId);
+    setCompleted(true);
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
-        <Loader2 className="animate-spin text-blue-500" size={40} />
-        <p className="text-slate-500 font-medium">Syncing session state...</p>
+      <div className="h-full flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-accent"></div>
       </div>
     );
   }
@@ -223,8 +334,8 @@ export default function InterviewSessionPage() {
     const avgScore = answers.reduce((acc, curr) => acc + curr.overall_score, 0) / (answers.length || 1);
     
     return (
-      <main className="min-h-screen bg-[#050505] text-white flex items-center justify-center p-4">
-        <div className="max-w-2xl w-full bg-[#0A0A0A] border border-white/5 rounded-[40px] p-10 text-center space-y-8 shadow-2xl relative overflow-hidden">
+      <main className="max-w-3xl mx-auto w-full py-12 px-6">
+        <div className="bg-slate-900 border border-white/5 rounded-[48px] p-12 text-center space-y-8 relative overflow-hidden shadow-2xl">
           {avgScore >= 85 && (
             <div className="absolute inset-0 bg-blue-500/5 pointer-events-none animate-pulse" />
           )}
@@ -309,55 +420,95 @@ export default function InterviewSessionPage() {
 
       {/* Input / Evaluation Area */}
       <div className="relative group">
-        <textarea
-          ref={textareaRef}
-          disabled={evaluating || !!evaluation || generating}
-          value={userAnswer}
-          onChange={(e) => setUserAnswer(e.target.value)}
-          placeholder="Type your answer here... Be detailed, specific, and clear."
-          className={`w-full min-h-[300px] p-8 bg-white dark:bg-[#0A0A0A] border rounded-[40px] text-lg leading-relaxed outline-none transition-all resize-none shadow-2xl ${
-            evaluation ? 'border-green-500/20' : 'border-slate-200 dark:border-white/5 focus:border-blue-500/50'
-          }`}
-        />
-        
-        {!evaluation && !generating && (
-          <div className="absolute bottom-6 right-6 flex items-center gap-4">
-            <span className={`text-xs font-bold transition-colors ${userAnswer.length > 100 ? 'text-green-500' : 'text-slate-500'}`}>
-              {userAnswer.length} characters
-            </span>
-            <button
-              onClick={handleSubmitAnswer}
-              disabled={!userAnswer.trim() || evaluating}
-              className="p-4 bg-blue-600 text-white rounded-full hover:bg-blue-500 transition-all disabled:opacity-50 disabled:bg-slate-800 shadow-xl shadow-blue-500/10 active:scale-95"
-            >
-              {evaluating ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
-            </button>
+        {!evaluation && !generating ? (
+          <div className="relative">
+            <textarea
+              ref={textareaRef}
+              value={userAnswer}
+              onChange={(e) => setUserAnswer(e.target.value)}
+              placeholder="Type your answer here or use the microphone..."
+              className="w-full min-h-[300px] p-8 pb-24 bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-[40px] text-lg leading-relaxed outline-none transition-all resize-none shadow-2xl focus:border-blue-500/50"
+              disabled={evaluating || generating || isTranscribing}
+            />
+            
+            <div className="absolute bottom-6 right-6 flex items-center gap-3">
+              <button
+                onClick={toggleRecording}
+                disabled={evaluating || generating || isTranscribing}
+                className={`p-4 rounded-2xl transition-all flex items-center gap-2 font-bold ${
+                  isRecording 
+                    ? 'bg-red-500 text-white animate-pulse shadow-lg shadow-red-500/20' 
+                    : 'bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
+                <span className="text-xs uppercase tracking-widest hidden sm:block">
+                  {isRecording ? 'Stop Recording' : 'Voice Mode'}
+                </span>
+              </button>
+
+              <button
+                onClick={handleSubmitAnswer}
+                disabled={!userAnswer.trim() || evaluating || generating || isTranscribing}
+                className="px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-black rounded-2xl font-black text-sm uppercase tracking-widest flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:grayscale shadow-xl"
+              >
+                {evaluating || isTranscribing ? (
+                  <>
+                    <Loader2 className="animate-spin" size={18} /> {isTranscribing ? 'Transcribing...' : 'Analyzing...'}
+                  </>
+                ) : (
+                  <>
+                    Submit <Send size={18} />
+                  </>
+                )}
+              </button>
+            </div>
           </div>
+        ) : (
+          evaluation && (
+            <div className="w-full min-h-[150px] p-8 bg-slate-50 dark:bg-[#0A0A0A] border border-green-500/20 rounded-[40px] text-lg leading-relaxed opacity-60">
+              {userAnswer}
+            </div>
+          )
         )}
       </div>
 
       {/* Feedback Area */}
       {evaluation && (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {Object.entries(evaluation.scores).map(([key, val]: [string, any]) => (
-              <div key={key} className="bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 p-4 rounded-2xl text-center shadow-sm">
-                <p className="text-2xl font-black text-slate-900 dark:text-white">{val}%</p>
-                <p className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mt-1">{key}</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { label: 'Clarity', val: evaluation.scores.clarity },
+              { label: 'Confidence', val: evaluation.scores.confidence },
+              { label: 'Structure', val: evaluation.scores.structure },
+              { label: 'Relevance', val: evaluation.scores.relevance },
+            ].map((score) => (
+              <div key={score.label} className="bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 p-4 rounded-2xl text-center shadow-sm">
+                <p className="text-2xl font-black text-slate-900 dark:text-white">{score.val}%</p>
+                <p className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mt-1">{score.label}</p>
               </div>
             ))}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 p-8 rounded-[32px] space-y-4 shadow-sm">
-              <div className="flex items-center gap-2 text-blue-500">
-                <CheckCircle2 size={18} />
-                <span className="text-sm font-black uppercase tracking-widest">Feedback</span>
+              <div className="bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 p-8 rounded-[32px] space-y-4 shadow-sm relative group/feedback">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-blue-500">
+                    <CheckCircle2 size={18} />
+                    <span className="text-sm font-black uppercase tracking-widest">Feedback</span>
+                  </div>
+                  <button 
+                    onClick={() => speakText(evaluation.feedback)}
+                    className="p-2 text-slate-400 hover:text-blue-500 transition-colors"
+                    title="Speak feedback"
+                  >
+                    <Mic size={18} />
+                  </button>
+                </div>
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed italic">
+                  "{evaluation.feedback}"
+                </p>
               </div>
-              <p className="text-slate-600 dark:text-slate-300 leading-relaxed italic">
-                "{evaluation.feedback}"
-              </p>
-            </div>
 
             <div className="bg-blue-600/5 border border-blue-500/10 p-8 rounded-[32px] space-y-4 shadow-sm">
               <div className="flex items-center gap-2 text-blue-400">
